@@ -1,0 +1,86 @@
+{
+  "alarms": [
+    {
+      "id": "6cf16216-2a41-4ff3-bd45-9e9c47f3a9b4",
+      "dateTime": "2026-03-26T13:20:38.090Z",
+      "sent": false,
+      "eventId": "c89b7570-ce45-4d17-b650-1c9529e94f25",
+      "taskId": null,
+      "createdAt": "2026-03-24T22:13:45.665Z",
+      "event": {
+        "id": "c89b7570-ce45-4d17-b650-1c9529e94f25",
+        "title": "Reunião Dra. Camila",
+        "type": "PESSOAL",
+        "startDate": "2026-03-26T13:30:00.000Z",
+        "endDate": "2026-03-26T14:30:00.000Z",
+        "createdAt": "2026-03-24T19:56:50.888Z",
+        "updatedAt": "2026-03-24T22:13:45.665Z",
+        "projectId": null,
+        "originalId": null,
+        "recurrenceEndDate": null,
+        "recurrenceInterval": null,
+        "recurrenceType": "NONE",
+        "reminderMinutes": null,
+        "color": "teal"
+      }
+    },
+    {
+      "id": "eabc1d3d-f355-41aa-9eca-deca32f4b2cf",
+      "dateTime": "2026-03-24T22:14:12.156Z",
+      "sent": false,
+      "eventId": "c89b7570-ce45-4d17-b650-1c9529e94f25",
+      "taskId": null,
+      "createdAt": "2026-03-24T22:13:45.665Z",
+      "event": {
+        "id": "c89b7570-ce45-4d17-b650-1c9529e94f25",
+        "title": "Reunião Dra. Camila",
+        "type": "PESSOAL",
+        "startDate": "2026-03-26T13:30:00.000Z",
+        "endDate": "2026-03-26T14:30:00.000Z",
+        "createdAt": "2026-03-24T19:56:50.888Z",
+        "updatedAt": "2026-03-24T22:13:45.665Z",
+        "projectId": null,
+        "originalId": null,
+        "recurrenceEndDate": null,
+        "recurrenceInterval": null,
+        "recurrenceType": "NONE",
+        "reminderMinutes": null,
+        "color": "teal"
+      }
+    },
+    {
+      "id": "0515d656-c1eb-4306-b9c0-32362597b065",
+      "dateTime": "2026-03-24T11:00:48.051Z",
+      "sent": false,
+      "eventId": "0f3a350a-8d37-4706-bfca-d642c7a14a78",
+      "taskId": null,
+      "createdAt": "2026-03-24T10:56:56.856Z",
+      "event": {
+        "id": "0f3a350a-8d37-4706-bfca-d642c7a14a78",
+        "title": "Entrevista Colaborador Olinda Nova - NX",
+        "type": "EMPRESA",
+        "startDate": "2026-03-24T12:00:00.000Z",
+        "endDate": "2026-03-24T13:00:00.000Z",
+        "createdAt": "2026-03-23T20:26:49.097Z",
+        "updatedAt": "2026-03-24T10:56:56.856Z",
+        "projectId": null,
+        "originalId": null,
+        "recurrenceEndDate": null,
+        "recurrenceInterval": null,
+        "recurrenceType": "NONE",
+        "reminderMinutes": 60,
+        "color": "orange"
+      }
+    }
+  ],
+  "subs": [
+    {
+      "id": "5bacc524-340a-496b-b54f-977c57df0a75",
+      "endpoint": "https://fcm.googleapis.com/fcm/send/eDGIoJ-KFa4:APA91bEOmQ5dOBYhNt8vWnZsJVlyErhYJbgCaNTgytcBhPv1k8IDH_3rgN8A7uWSJykMbQaYb-G84XwJhi_cyWpOL9tY6xj1zRQBeToF8AkhpRxD9CzcBZaQ5BpbSjVV6dwenW985WFR",
+      "p256dh": "BLTW0nvG4q+7klKBbqWCvKUqzV2tfNcA4Ij93u2fb2e79R5CiVMPAEPrV7wZZC+fehV/XHsh27oLuXaZDhKuFw8=",
+      "auth": "gEsX/wHLC9WyFuuJbpuvbg==",
+      "userId": "1991f497-607a-4cb6-8291-8b3d56c68dff",
+      "createdAt": "2026-03-24T23:45:25.059Z"
+    }
+  ]
+}

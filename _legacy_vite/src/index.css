@@ -1,0 +1,211 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+@layer base {
+  :root {
+    /* Base colors - Clean professional palette */
+    --background: 210 20% 98%;
+    --foreground: 222 47% 11%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 11%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
+
+    /* Primary - Deep professional blue */
+    --primary: 222 47% 20%;
+    --primary-foreground: 210 40% 98%;
+
+    /* Secondary - Soft gray */
+    --secondary: 210 20% 96%;
+    --secondary-foreground: 222 47% 11%;
+
+    --muted: 210 20% 94%;
+    --muted-foreground: 215 16% 47%;
+
+    --accent: 210 20% 93%;
+    --accent-foreground: 222 47% 11%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 214 32% 91%;
+    --input: 214 32% 91%;
+    --ring: 222 47% 20%;
+
+    --radius: 0.5rem;
+
+    /* Context colors - Semantic meaning */
+    --context-family: 38 92% 50%;
+    --context-family-foreground: 38 92% 20%;
+    --context-family-bg: 38 92% 95%;
+    
+    --context-work: 217 91% 60%;
+    --context-work-foreground: 217 91% 20%;
+    --context-work-bg: 217 91% 95%;
+    
+    --context-study: 262 83% 58%;
+    --context-study-foreground: 262 83% 20%;
+    --context-study-bg: 262 83% 95%;
+    
+    --context-personal: 142 76% 36%;
+    --context-personal-foreground: 142 76% 15%;
+    --context-personal-bg: 142 76% 95%;
+
+    --context-spiritual: 280 60% 55%;
+    --context-spiritual-foreground: 280 60% 20%;
+    --context-spiritual-bg: 280 60% 95%;
+
+    /* Priority colors */
+    --priority-high: 0 84% 60%;
+    --priority-medium: 38 92% 50%;
+    --priority-low: 142 76% 36%;
+
+    /* Energy colors */
+    --energy-high: 0 84% 60%;
+    --energy-medium: 38 92% 50%;
+    --energy-low: 142 76% 36%;
+
+    /* Status colors */
+    --status-pending: 38 92% 50%;
+    --status-active: 217 91% 60%;
+    --status-done: 142 76% 36%;
+    --status-cancelled: 0 0% 60%;
+
+    /* Sidebar - Dark professional */
+    --sidebar-background: 222 47% 11%;
+    --sidebar-foreground: 210 20% 90%;
+    --sidebar-primary: 217 91% 60%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 222 47% 18%;
+    --sidebar-accent-foreground: 210 20% 98%;
+    --sidebar-border: 222 47% 18%;
+    --sidebar-ring: 217 91% 60%;
+    --sidebar-muted: 222 47% 25%;
+  }
+
+  .dark {
+    --background: 222 47% 8%;
+    --foreground: 210 20% 98%;
+
+    --card: 222 47% 11%;
+    --card-foreground: 210 20% 98%;
+
+    --popover: 222 47% 11%;
+    --popover-foreground: 210 20% 98%;
+
+    --primary: 217 91% 60%;
+    --primary-foreground: 222 47% 11%;
+
+    --secondary: 222 47% 15%;
+    --secondary-foreground: 210 20% 98%;
+
+    --muted: 222 47% 15%;
+    --muted-foreground: 215 20% 65%;
+
+    --accent: 222 47% 18%;
+    --accent-foreground: 210 20% 98%;
+
+    --destructive: 0 62% 30%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 222 47% 18%;
+    --input: 222 47% 18%;
+    --ring: 217 91% 60%;
+
+    --sidebar-background: 222 47% 6%;
+    --sidebar-foreground: 210 20% 90%;
+    --sidebar-primary: 217 91% 60%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 222 47% 12%;
+    --sidebar-accent-foreground: 210 20% 98%;
+    --sidebar-border: 222 47% 12%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    font-family: 'Inter', sans-serif;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-semibold tracking-tight;
+  }
+}
+
+@layer components {
+  .stat-card {
+    @apply bg-card rounded-lg border p-4 shadow-sm transition-shadow hover:shadow-md;
+  }
+
+  .context-badge {
+    @apply inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium;
+  }
+
+  .context-badge-family {
+    @apply bg-[hsl(var(--context-family-bg))] text-[hsl(var(--context-family-foreground))];
+  }
+
+  .context-badge-work {
+    @apply bg-[hsl(var(--context-work-bg))] text-[hsl(var(--context-work-foreground))];
+  }
+
+  .context-badge-study {
+    @apply bg-[hsl(var(--context-study-bg))] text-[hsl(var(--context-study-foreground))];
+  }
+
+  .context-badge-personal {
+    @apply bg-[hsl(var(--context-personal-bg))] text-[hsl(var(--context-personal-foreground))];
+  }
+
+  .context-badge-spiritual {
+    @apply bg-[hsl(var(--context-spiritual-bg))] text-[hsl(var(--context-spiritual-foreground))];
+  }
+
+  .priority-indicator {
+    @apply w-2 h-2 rounded-full;
+  }
+
+  .priority-high {
+    @apply bg-[hsl(var(--priority-high))];
+  }
+
+  .priority-medium {
+    @apply bg-[hsl(var(--priority-medium))];
+  }
+
+  .priority-low {
+    @apply bg-[hsl(var(--priority-low))];
+  }
+}
+
+@layer utilities {
+  .scrollbar-thin {
+    scrollbar-width: thin;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    @apply bg-muted-foreground/20 rounded-full;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+    @apply bg-muted-foreground/30;
+  }
+}

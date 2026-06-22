@@ -1,0 +1,200 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+  --color-card: hsl(var(--card));
+  --color-card-foreground: hsl(var(--card-foreground));
+  --color-popover: hsl(var(--popover));
+  --color-popover-foreground: hsl(var(--popover-foreground));
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+  --color-secondary: hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+  --color-accent: hsl(var(--accent));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+  --color-destructive: hsl(var(--destructive));
+  --color-destructive-foreground: hsl(var(--destructive-foreground));
+  --color-border: hsl(var(--border));
+  --color-input: hsl(var(--input));
+  --color-ring: hsl(var(--ring));
+
+  --color-sidebar-background: hsl(var(--sidebar-background));
+  --color-sidebar-foreground: hsl(var(--sidebar-foreground));
+  --color-sidebar-primary: hsl(var(--sidebar-primary));
+  --color-sidebar-primary-foreground: hsl(var(--sidebar-primary-foreground));
+  --color-sidebar-accent: hsl(var(--sidebar-accent));
+  --color-sidebar-accent-foreground: hsl(var(--sidebar-accent-foreground));
+  --color-sidebar-border: hsl(var(--sidebar-border));
+  --color-sidebar-ring: hsl(var(--sidebar-ring));
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+}
+
+@layer base {
+  :root {
+    /* MODERN NOIR PALETTE: High Contrast, Luxury, Organic */
+
+    /* Pure Black & White Foundation */
+    --background: 0 0% 0%;
+    /* #000000 */
+    --foreground: 0 0% 100%;
+    /* #FFFFFF */
+
+    /* Surface: Glass & Depth */
+    --card: 0 0% 3%;
+    /* Ultra dark gray */
+    --card-foreground: 0 0% 100%;
+
+    --popover: 0 0% 5%;
+    --popover-foreground: 0 0% 100%;
+
+    /* Primary: Pure White (The Noir Signature) */
+    --primary: 0 0% 100%;
+    --primary-foreground: 0 0% 0%;
+
+    /* Secondary: Muted Tones */
+    --secondary: 0 0% 12%;
+    --secondary-foreground: 0 0% 100%;
+
+    /* Muted: Subtle contrast */
+    --muted: 0 0% 10%;
+    --muted-foreground: 0 0% 60%;
+
+    /* Accent: Sleek Hover */
+    --accent: 0 0% 15%;
+    --accent-foreground: 0 0% 100%;
+
+    /* Destructive: Essential contrast */
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    /* Borders: Semi-transparent White */
+    --border: 0 0% 100% / 0.1;
+    --input: 0 0% 100% / 0.05;
+    --ring: 0 0% 100% / 0.3;
+
+    /* Radius: Organic Rounded (20px) */
+    --radius: 1.25rem;
+
+    /* Context Colors (Grayscale Patterns for Noir + Wheel of Life) */
+    --context-saude: 142 70% 50%;          /* Saúde e Disposição (Green) */
+    --context-intelectual: 262 70% 60%;    /* Desenvolvimento Intelectual (Purple/Violet) */
+    --context-emocional: 330 70% 60%;      /* Equilíbrio Emocional (Rose) */
+    --context-realizacao: 217 91% 60%;     /* Realização e Propósito (Blue) */
+    --context-financeiro: 38 92% 50%;      /* Recursos Financeiros (Amber/Gold) */
+    --context-social: 188 86% 53%;         /* Contribuição Social (Cyan) */
+    --context-familia: 25 95% 53%;         /* Família (Orange/Amber) */
+    --context-relacionamento: 0 84% 60%;   /* Relacionamento Amoroso (Red) */
+    --context-vida-social: 199 89% 48%;    /* Vida Social (Sky Blue) */
+    --context-lazer: 20 90% 50%;           /* Hobby e Lazer (Deep Orange) */
+    --context-felicidade: 45 93% 47%;      /* Plenitude e Felicidade (Yellow) */
+    --context-espiritual: 255 70% 60%;     /* Espiritualidade (Indigo) */
+
+    /* Sidebar */
+    --sidebar-background: 0 0% 0%;
+    --sidebar-foreground: 0 0% 100% / 0.7;
+    --sidebar-primary: 0 0% 100%;
+    --sidebar-primary-foreground: 0 0% 0%;
+    --sidebar-accent: 0 0% 100% / 0.05;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 0 0% 100% / 0.05;
+    --sidebar-ring: 0 0% 100%;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    background-image:
+      radial-gradient(at 0% 0%, rgba(255, 255, 255, 0.03) 0px, transparent 50%),
+      radial-gradient(at 100% 0%, rgba(255, 255, 255, 0.02) 0px, transparent 50%);
+    /* NOTE: background-attachment: fixed removed — breaks iOS Safari (causes white flash on scroll) */
+    /* Safe area insets for devices with notch / home indicator */
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+  }
+
+  ::selection {
+    @apply bg-white text-black;
+  }
+}
+
+@layer components {
+
+  /* NOIR GLASSMORPHISM */
+  .glass-panel {
+    @apply bg-white/[0.03] backdrop-blur-xl border border-white/10 shadow-[0_8px_32px_rgba(0_0_0_/_0.5)];
+  }
+
+  .subtle-border {
+    @apply border border-white/10;
+  }
+
+  /* NOIR INPUTS */
+  .flux-input {
+    @apply h-14 w-full rounded-2xl border border-white/10 bg-white/5 px-6 py-2 text-base font-normal text-white shadow-xl transition-all placeholder:text-zinc-600 focus-visible:border-white/30 focus-visible:bg-white/10 focus-visible:outline-none focus-visible:ring-8 focus-visible:ring-white/5 disabled:cursor-not-allowed disabled:opacity-50;
+  }
+
+  /* TABS: Modern Noir Pills */
+  .flux-tab-list {
+    @apply inline-flex h-12 items-center justify-center rounded-2xl bg-white/5 p-1.5 text-zinc-400 border border-white/5;
+  }
+
+  .flux-tab-trigger {
+    @apply inline-flex items-center justify-center whitespace-nowrap rounded-xl px-5 py-2 text-sm font-bold uppercase tracking-widest ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-white data-[state=active]:text-black data-[state=active]:shadow-2xl data-[state=active]:scale-105;
+  }
+
+  /* Specific Context Badges - Neon on Dark - Wheel of Life 12 Areas */
+  .context-badge-saude { @apply border-[hsl(var(--context-saude))]/20 text-[hsl(var(--context-saude))] bg-[hsl(var(--context-saude))]/10; }
+  .context-badge-intelectual { @apply border-[hsl(var(--context-intelectual))]/20 text-[hsl(var(--context-intelectual))] bg-[hsl(var(--context-intelectual))]/10; }
+  .context-badge-emocional { @apply border-[hsl(var(--context-emocional))]/20 text-[hsl(var(--context-emocional))] bg-[hsl(var(--context-emocional))]/10; }
+  .context-badge-realizacao { @apply border-[hsl(var(--context-realizacao))]/20 text-[hsl(var(--context-realizacao))] bg-[hsl(var(--context-realizacao))]/10; }
+  .context-badge-financeiro { @apply border-[hsl(var(--context-financeiro))]/20 text-[hsl(var(--context-financeiro))] bg-[hsl(var(--context-financeiro))]/10; }
+  .context-badge-social { @apply border-[hsl(var(--context-social))]/20 text-[hsl(var(--context-social))] bg-[hsl(var(--context-social))]/10; }
+  .context-badge-familia { @apply border-[hsl(var(--context-familia))]/20 text-[hsl(var(--context-familia))] bg-[hsl(var(--context-familia))]/10; }
+  .context-badge-relacionamento { @apply border-[hsl(var(--context-relacionamento))]/20 text-[hsl(var(--context-relacionamento))] bg-[hsl(var(--context-relacionamento))]/10; }
+  .context-badge-vida-social { @apply border-[hsl(var(--context-vida-social))]/20 text-[hsl(var(--context-vida-social))] bg-[hsl(var(--context-vida-social))]/10; }
+  .context-badge-lazer { @apply border-[hsl(var(--context-lazer))]/20 text-[hsl(var(--context-lazer))] bg-[hsl(var(--context-lazer))]/10; }
+  .context-badge-felicidade { @apply border-[hsl(var(--context-felicidade))]/20 text-[hsl(var(--context-felicidade))] bg-[hsl(var(--context-felicidade))]/10; }
+  .context-badge-espiritual { @apply border-[hsl(var(--context-espiritual))]/20 text-[hsl(var(--context-espiritual))] bg-[hsl(var(--context-espiritual))]/10; }
+}
+
+@layer utilities {
+  @keyframes fade-in-up {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .animate-fade-in-up {
+    animation: fade-in-up 0.5s ease forwards;
+  }
+
+  .glow-hover {
+    @apply transition-all duration-300;
+  }
+  
+  .glow-hover:hover {
+    @apply -translate-y-0.5 border-white/20 shadow-[0_0_30px_rgba(255,255,255,0.05)];
+  }
+
+  /* Staggered delayer utilities */
+  .delay-100 { animation-delay: 100ms; }
+  .delay-200 { animation-delay: 200ms; }
+  .delay-300 { animation-delay: 300ms; }
+  .delay-400 { animation-delay: 400ms; }
+  .delay-500 { animation-delay: 500ms; }
+}

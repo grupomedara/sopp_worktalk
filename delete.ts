@@ -1,0 +1,1 @@
+import { PrismaClient } from '@prisma/client'; const prisma = new PrismaClient(); async function main() { const res = await prisma.event.deleteMany({ where: { title: { contains: 'Jiu Jitsu' } } }); console.log(res); } main();

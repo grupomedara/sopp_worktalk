@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80" fill="none">
+  <rect width="80" height="80" rx="16" fill="#000000" />
+  <!-- Symbol: Abstract S -->
+  <path d="M50 20 L30 20 L30 40 L50 40 L50 60 L30 60" stroke="#ffffff" stroke-width="8" stroke-linecap="square" />
+  <path d="M30 20 L30 10 L70 10 L70 30 L50 30" stroke="#ffffff" stroke-width="8" stroke-linecap="square" />
+  <path d="M50 50 L70 50 L70 70 L30 70 L30 60" stroke="#ffffff" stroke-width="8" stroke-linecap="square" />
+</svg>
