@@ -100,9 +100,8 @@ export function CommandCenter() {
     const getIcon = (type: string) => {
         switch (type) {
             case "Nota": return <StickyNote className="mr-2 h-4 w-4" />;
-            case "Projeto": return <FolderKanban className="mr-2 h-4 w-4" />;
             case "Tarefa": return <CheckSquare className="mr-2 h-4 w-4" />;
-            case "Pessoa": return <User className="mr-2 h-4 w-4" />;
+            case "Lista": return <FolderKanban className="mr-2 h-4 w-4" />;
             default: return <Search className="mr-2 h-4 w-4" />;
         }
     };
@@ -110,7 +109,7 @@ export function CommandCenter() {
     return (
         <CommandDialog open={open} onOpenChange={setOpen}>
             <CommandInput
-                placeholder="Busca universal (Notas, Projetos, Tarefas...)"
+                placeholder="Busca universal (Notas, Tarefas, Listas...)"
                 value={query}
                 onValueChange={setQuery}
             />
@@ -172,8 +171,11 @@ export function CommandCenter() {
                     <CommandItem onSelect={() => onSelect("/notes")}>
                         <StickyNote className="mr-2 h-4 w-4" /> Ver Todas as Notas
                     </CommandItem>
-                    <CommandItem onSelect={() => onSelect("/agile")}>
-                        <FolderKanban className="mr-2 h-4 w-4" /> Agile Boards
+                    <CommandItem onSelect={() => onSelect("/processes")}>
+                        <FolderKanban className="mr-2 h-4 w-4" /> Acompanhamento de Processos
+                    </CommandItem>
+                    <CommandItem onSelect={() => onSelect("/routines")}>
+                        <CheckSquare className="mr-2 h-4 w-4" /> Rotinas & SOPs
                     </CommandItem>
                 </CommandGroup>
             </CommandList>

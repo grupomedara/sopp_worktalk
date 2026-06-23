@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Plus, Search, MoreHorizontal, StickyNote, Trash2, Edit, BrainCircuit, Zap, CheckSquare } from "lucide-react";
+import { Plus } from "lucide-react";
 import {
     Dialog,
     DialogContent,
@@ -12,12 +12,10 @@ import {
     DialogTrigger,
 } from "@/components/ui/dialog";
 import { NoteForm } from "@/components/notes/NoteForm";
-import { Person, Note, Project } from "@prisma/client";
+import { Note } from "@prisma/client";
 
 interface NoteDialogProps {
-    people: Person[];
     notes?: Note[];
-    projects?: Project[];
     initialData?: any;
     open?: boolean;
     onOpenChange?: (open: boolean) => void;
@@ -27,9 +25,7 @@ interface NoteDialogProps {
 }
 
 export function NoteDialog({
-    people,
     notes = [],
-    projects = [],
     initialData,
     open: controlledOpen,
     onOpenChange,
@@ -64,9 +60,7 @@ export function NoteDialog({
                     </DialogDescription>
                 </DialogHeader>
                 <NoteForm
-                    people={people}
                     notes={notes}
-                    projects={projects}
                     initialData={initialData}
                     onSuccess={handleSuccess}
                     defaultType={defaultType}

@@ -8,11 +8,9 @@ import { cn } from "@/lib/utils";
 interface SmartViewerProps {
     content: string;
     notes?: any[];
-    people?: any[];
-    projects?: any[];
 }
 
-export function SmartViewer({ content, notes = [], people = [], projects = [] }: SmartViewerProps) {
+export function SmartViewer({ content, notes = [] }: SmartViewerProps) {
     if (!content) return null;
 
     // If content is HTML, strip tags for the preview to avoid showing raw tags
@@ -24,10 +22,8 @@ export function SmartViewer({ content, notes = [], people = [], projects = [] }:
 
     // Pattern for [[Wiki Links]]
     const wikiRegex = /\[\[(.*?)\]\]/g;
-    // Pattern for @Mentions
-    const mentionRegex = /@(\w+(?:\s+\w+)*)/g;
 
-    const parts = cleanContent.split(/(\[\[.*?\]\]|@\w+(?:\s+\w+)*|^-\s|^\[\s\]\s|^\[x\]\s|^###\s)/gm);
+    const parts = cleanContent.split(/(\[\[.*?\]\]|^-\s|^\[\s\]\s|^\[x\]\s|^###\s)/gm);
 
     return (
         <div className="whitespace-pre-wrap break-words leading-relaxed text-zinc-300">
@@ -37,17 +33,6 @@ export function SmartViewer({ content, notes = [], people = [], projects = [] }:
                     const title = part.slice(2, -2);
                     const note = notes.find(n => n.title.toLowerCase() === title.toLowerCase());
                     return <WikiLink key={i} title={title} noteId={note?.id} />;
-                }
-
-                // Mentions
-                if (part.startsWith("@")) {
-                    const name = part.slice(1);
-                    const person = people.find(p => p.name.toLowerCase().includes(name.toLowerCase()));
-                    const project = projects.find(p => p.name.toLowerCase().includes(name.toLowerCase()));
-
-                    if (person || project) {
-                        return <Mention key={i} name={name} item={person || project} type={person ? "person" : "project"} />;
-                    }
                 }
 
                 // Checkboxes

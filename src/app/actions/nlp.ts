@@ -4,14 +4,19 @@ import { db } from "@/lib/db";
 import { ParsedNLP } from "@/lib/nlp-parser";
 import { Context, Status } from "@prisma/client";
 import { revalidatePath } from "next/cache";
+import { auth } from "@/auth";
 
 export async function quickCreate(parsed: ParsedNLP) {
     try {
+        const session = await auth();
+        if (!session?.user?.id) return { success: false, message: "Não autorizado" };
+
+        const userId = session.user.id;
+
         // 1. Resolve Context
         let context: Context = Context.REALIZACAO; // Default to Realizacao
         
         const contextMap: Record<string, Context> = {
-            // New 12 Areas Aliases
             'SAUDE': Context.SAUDE,
             'HEALTH': Context.SAUDE,
             'CORPO': Context.SAUDE,
@@ -54,7 +59,6 @@ export async function quickCreate(parsed: ParsedNLP) {
             'RELIGIAO': Context.ESPIRITUAL,
             'BIBLE': Context.ESPIRITUAL,
             'ORAÇÃO': Context.ESPIRITUAL,
-            // Legacy Mappings
             'PESSOAL': Context.SAUDE,
         };
 
@@ -69,47 +73,40 @@ export async function quickCreate(parsed: ParsedNLP) {
             }
         }
 
-        // 2. Resolve @Mentions (Person or Project)
-        let personId: string | undefined;
-        let projectId: string | undefined;
+        // 2. Find a list to assign this task to
+        const userList = await db.list.findFirst({
+            where: {
+                space: {
+                    OR: [
+                        { userId },
+                        { shares: { some: { userId } } }
+                    ]
+                }
+            }
+        });
 
-        if (parsed.mentions.length > 0) {
-            const mention = parsed.mentions[0];
-
-            // Try to find a person
-            const person = await db.person.findFirst({
-                where: { name: { contains: mention, mode: "insensitive" } }
-            });
-            if (person) personId = person.id;
-
-            // Try to find a project (if not found person or just check both)
-            const project = await db.project.findFirst({
-                where: { name: { contains: mention, mode: "insensitive" } }
-            });
-            if (project) projectId = project.id;
-        }
-
-        // 3. Create Task or Event
-        // If there's a date/time, we create a Task for now (mapped to tactical agenda)
-
+        // 3. Create Task
         const task = await db.task.create({
             data: {
                 title: parsed.text || "Nova Captura",
                 context,
                 status: Status.PENDING,
-                priority: "MEDIUM",
+                priority: "NORMAL",
                 date: parsed.date,
-                projectId: projectId,
-                responsibleId: personId
+                userId: userId,
+                listId: userList?.id || null
             }
         });
 
         revalidatePath("/");
-        revalidatePath("/tasks");
+        revalidatePath("/processes");
+        if (userList?.id) {
+            revalidatePath(`/processes/${userList.id}`);
+        }
 
         return {
             success: true,
-            message: `Captura realizada: ${task.title}`,
+            message: `Captura realizada: ${task.title}${userList ? ` (adicionada em ${userList.name})` : ""}`,
             data: task
         };
 

@@ -49,7 +49,7 @@ export async function verifyRoutineAccess(routineId: string, userId: string): Pr
 // CRUD ROTINAS (CHECKLISTS POR PESSOA/FUNÇÃO)
 // ==========================================
 
-export async function getRoutines(responsibleId?: string | null) {
+export async function getRoutines() {
     try {
         const session = await auth();
         if (!session?.user?.id) return { success: false, error: "Não autorizado" };
@@ -61,26 +61,9 @@ export async function getRoutines(responsibleId?: string | null) {
             ]
         };
 
-        if (responsibleId !== undefined) {
-            whereClause.responsibleId = responsibleId;
-        }
-
         const routines = await db.routine.findMany({
             where: whereClause,
             include: {
-                responsible: {
-                    select: {
-                        id: true,
-                        name: true,
-                        type: true
-                    }
-                },
-                project: {
-                    select: {
-                        id: true,
-                        name: true
-                    }
-                },
                 items: {
                     orderBy: { order: "asc" }
                 },
@@ -111,8 +94,6 @@ export async function createRoutine(data: {
     title: string;
     role?: string | null;
     description?: string | null;
-    responsibleId?: string | null;
-    projectId?: string | null;
 }) {
     try {
         const session = await auth();
@@ -123,8 +104,6 @@ export async function createRoutine(data: {
                 title: data.title,
                 role: data.role || null,
                 description: data.description || null,
-                responsibleId: data.responsibleId || null,
-                projectId: data.projectId || null,
                 userId: session.user.id
             }
         });
@@ -142,8 +121,6 @@ export async function updateRoutine(id: string, data: {
     title?: string;
     role?: string | null;
     description?: string | null;
-    responsibleId?: string | null;
-    projectId?: string | null;
     isActive?: boolean;
 }) {
     try {
@@ -161,8 +138,6 @@ export async function updateRoutine(id: string, data: {
                 title: data.title,
                 role: data.role !== undefined ? data.role : undefined,
                 description: data.description !== undefined ? data.description : undefined,
-                responsibleId: data.responsibleId !== undefined ? data.responsibleId : undefined,
-                projectId: data.projectId !== undefined ? data.projectId : undefined,
                 isActive: data.isActive !== undefined ? data.isActive : undefined
             }
         });
@@ -385,7 +360,7 @@ function isRoutineActiveOnDate(routine: { frequency: RoutineFrequency; scheduleD
 }
 
 // Obter as rotinas de uma data com seus logs de execução filtrados por item
-export async function getTodayRoutines(dateStr: string, responsibleId?: string | null) {
+export async function getTodayRoutines(dateStr: string) {
     try {
         const session = await auth();
         if (!session?.user?.id) return { success: false, error: "Não autorizado" };
@@ -400,27 +375,10 @@ export async function getTodayRoutines(dateStr: string, responsibleId?: string |
             isActive: true
         };
 
-        if (responsibleId !== undefined) {
-            whereClause.responsibleId = responsibleId;
-        }
-
         // 1. Busca todas as rotinas ativas
         const allRoutines = await db.routine.findMany({
             where: whereClause,
             include: {
-                responsible: {
-                    select: {
-                        id: true,
-                        name: true,
-                        type: true
-                    }
-                },
-                project: {
-                    select: {
-                        id: true,
-                        name: true
-                    }
-                },
                 items: {
                     orderBy: { order: "asc" }
                 },
@@ -470,8 +428,6 @@ export async function getTodayRoutines(dateStr: string, responsibleId?: string |
                 title: r.title,
                 role: r.role,
                 description: r.description,
-                responsible: r.responsible,
-                project: r.project,
                 progress,
                 totalItems,
                 completedItems,

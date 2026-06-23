@@ -38,8 +38,6 @@ export async function GET(req: Request) {
       body: string,
       url: string
     ) => {
-      // If userId provided, send only to that user's subscriptions
-      // If no userId (e.g. events without a project), send to all subscribers
       const subs = await prisma.pushSubscription.findMany({
         where: userId ? { userId } : {},
       });
@@ -69,22 +67,19 @@ export async function GET(req: Request) {
     };
 
     // ==========================================
-    // 1. TASKS with reminders (via project owner)
+    // 1. TASKS with reminders (via task creator/owner)
     // ==========================================
     const tasks = await prisma.task.findMany({
       where: {
         date: { not: null },
         reminderMinutes: { gte: 0 },
         status: { notIn: ["COMPLETED", "ARCHIVED", "CANCELED"] },
-      },
-      include: { project: true },
+      }
     });
 
     for (const task of tasks) {
       if (!task.date || task.reminderMinutes === null || task.reminderMinutes < 0) continue;
 
-      // Day-based reminder (new): values >= 1000 encode (daysBefore * 10000)
-      // We fire at 8h00 on (task.date - daysBefore)
       let alertTime: Date;
       let notificationBody: string;
 
@@ -115,7 +110,7 @@ export async function GET(req: Request) {
 
       const diffMs = now.getTime() - alertTime.getTime();
       const willSend = diffMs >= 0 && diffMs < 5 * 60 * 1000;
-      const ownerId = task.project?.ownerId || null;
+      const ownerId = task.userId || null;
 
       debug.push({
         type: "task",
@@ -134,7 +129,7 @@ export async function GET(req: Request) {
           ownerId,
           `📝 Tarefa: ${task.title}`,
           notificationBody,
-          "/tasks"
+          task.listId ? `/processes/${task.listId}` : "/processes"
         );
         // Mark as sent
         await prisma.task.update({
@@ -145,152 +140,7 @@ export async function GET(req: Request) {
     }
 
     // ==========================================
-    // 2. EVENTS — only those with explicit reminder configured
-    // ==========================================
-    const events = await prisma.event.findMany({
-      where: {
-        reminderMinutes: { gt: 0 }, // explicit pre-reminders
-        startDate: {
-          gte: new Date(now.getTime() - 60 * 60 * 1000),
-          lte: new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000),
-        },
-      },
-      include: { project: true },
-    });
-
-    for (const event of events) {
-      const alertTime = new Date(
-        event.startDate.getTime() - event.reminderMinutes! * 60000
-      );
-      const diffMs = now.getTime() - alertTime.getTime();
-      const willSend = diffMs >= 0 && diffMs < 5 * 60 * 1000;
-      const ownerId = event.project?.ownerId || null;
-
-      debug.push({
-        type: "event_reminder",
-        title: event.title,
-        ownerId,
-        startDate: event.startDate.toISOString(),
-        reminderMinutes: event.reminderMinutes,
-        alertTime: alertTime.toISOString(),
-        serverNow: now.toISOString(),
-        diffMinutes: Math.round(diffMs / 60000),
-        willSend,
-      });
-
-      if (willSend) {
-        await sendToUser(
-          ownerId,
-          `📅 Agenda: ${event.title}`,
-          `Seu compromisso começa em ${event.reminderMinutes} min.`,
-          "/agenda"
-        );
-        await prisma.event.update({
-          where: { id: event.id },
-          data: { reminderMinutes: -1 },
-        });
-      }
-    }
-
-    // ==========================================
-    // 2.5. EVENTS — EXACT START TIME NOTIFICATIONS
-    // ==========================================
-    const startingEvents = await prisma.event.findMany({
-      where: {
-        startNotified: false,
-        startDate: {
-          gte: new Date(now.getTime() - 5 * 60 * 1000), // last 5 minutes
-          lte: new Date(now.getTime() + 60 * 1000),      // next 1 minute edge-cases
-        },
-      },
-      include: { project: true },
-    });
-
-    for (const event of startingEvents) {
-      const diffMs = now.getTime() - event.startDate.getTime();
-      const willSend = diffMs >= 0 && diffMs < 5 * 60 * 1000;
-      const ownerId = (event as any).project?.ownerId || null;
-
-      if (willSend) {
-        await sendToUser(
-          ownerId,
-          `📅 Agenda: ${event.title}`,
-          `O evento está iniciando agora!`,
-          "/agenda"
-        );
-        // Casting to any to avoid TS errors on the user's locked local environment
-        // Vercel handles this perfectly but we keep the local server clean
-        await (prisma.event.update as any)({
-          where: { id: event.id },
-          data: { startNotified: true },
-        });
-      }
-    }
-
-    // ==========================================
-    // 3. FINANCES with reminders
-    // ==========================================
-    const finances = await prisma.finance.findMany({
-      where: {
-        dueDate: { not: null },
-        reminderMinutes: { not: null },
-        status: { notIn: ["COMPLETED", "ARCHIVED", "CANCELED"] },
-      },
-      include: { project: true },
-    });
-
-    for (const finance of finances) {
-      if (!finance.dueDate || finance.reminderMinutes === null || finance.reminderMinutes < 0) continue;
-
-      let alertTime: Date;
-      let notificationBody: string;
-
-      if (finance.reminderMinutes >= 1000) {
-        const daysBefore = Math.round(finance.reminderMinutes / 10000);
-        const dueDay = new Date(finance.dueDate);
-        dueDay.setHours(0, 0, 0, 0); 
-        const alertDay = new Date(dueDay.getTime() - daysBefore * 24 * 60 * 60 * 1000);
-        alertDay.setHours(8, 0, 0, 0); 
-        alertTime = alertDay;
-
-        if (daysBefore === 0) {
-          notificationBody = `Hoje vence: ${finance.description}`;
-        } else if (daysBefore === 1) {
-          notificationBody = `Vence amanhã: ${finance.description}`;
-        } else if (daysBefore === 7) {
-          notificationBody = `Vence em 1 semana: ${finance.description}`;
-        } else {
-          notificationBody = `Vence em ${daysBefore} dias: ${finance.description}`;
-        }
-      } else {
-        alertTime = new Date(
-          finance.dueDate.getTime() - finance.reminderMinutes * 60000
-        );
-        notificationBody = finance.reminderMinutes === 0
-          ? `Vencimento agora: ${finance.description}`
-          : `Vencimento em ${finance.reminderMinutes} min.`;
-      }
-
-      const diffMs = now.getTime() - alertTime.getTime();
-      const willSend = diffMs >= 0 && diffMs < 5 * 60 * 1000;
-      const ownerId = finance.project?.ownerId || null;
-
-      if (willSend) {
-        await sendToUser(
-          ownerId,
-          `💰 Finanças: ${finance.description}`,
-          notificationBody,
-          "/financas"
-        );
-        await prisma.finance.update({
-          where: { id: finance.id },
-          data: { reminderMinutes: -1 },
-        });
-      }
-    }
-
-    // ==========================================
-    // 4. ALARMS (Custom UI Scheduled Alarms)
+    // 2. ALARMS (Custom UI Scheduled Alarms)
     // ==========================================
     const alarms = await prisma.alarm.findMany({
       where: {
@@ -300,8 +150,7 @@ export async function GET(req: Request) {
         },
       },
       include: {
-        event: { include: { project: true } },
-        task: { include: { project: true } },
+        task: true,
       },
     });
 
@@ -314,29 +163,18 @@ export async function GET(req: Request) {
       let body = "Lembrete programado.";
       let url = "/";
 
-      if (alarm.event) {
-        ownerId = alarm.event.project?.ownerId || null;
-        title = `⏰ Alarme Agenda: ${alarm.event.title}`;
-        
-        // Formatar o horário do evento forçando o fuso horário de Brasília
-        const eventDate = new Date(alarm.event.startDate);
-        const timeString = eventDate.toLocaleTimeString('pt-BR', { timeZone: 'America/Sao_Paulo', hour: '2-digit', minute: '2-digit' });
-        const dateString = eventDate.toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo', day: '2-digit', month: '2-digit' });
-        
-        body = `Alarme referente ao compromisso de ${dateString} às ${timeString}.`;
-        url = "/agenda";
-      } else if (alarm.task) {
-        ownerId = alarm.task.project?.ownerId || null;
+      if (alarm.task) {
+        ownerId = alarm.task.userId || null;
         title = `📝 Lembrete Tarefa: ${alarm.task.title}`;
         
-        const taskDate = alarm.task.taskDate ? new Date(alarm.task.taskDate) : null;
+        const taskDate = alarm.task.date ? new Date(alarm.task.date) : null;
         if (taskDate) {
           const dateString = taskDate.toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo', day: '2-digit', month: '2-digit' });
           body = `Atenção à tarefa agendada para o dia ${dateString}.`;
         } else {
           body = `Lembrete de tarefa programada.`;
         }
-        url = "/tasks";
+        url = alarm.task.listId ? `/processes/${alarm.task.listId}` : "/processes";
       }
 
       debug.push({
@@ -349,7 +187,7 @@ export async function GET(req: Request) {
         willSend,
       });
 
-      if (willSend) {
+      if (willSend && ownerId) {
         await sendToUser(ownerId, title, body, url);
         await prisma.alarm.update({
           where: { id: alarm.id },
@@ -365,8 +203,6 @@ export async function GET(req: Request) {
       serverTime: now.toISOString(),
       checked: {
         tasks: tasks.length,
-        events: events.length,
-        finances: finances.length,
         alarms: alarms.length,
       },
       debug,

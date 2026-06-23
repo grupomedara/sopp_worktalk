@@ -27,8 +27,7 @@ import { createNote, updateNote } from "@/app/actions/notes";
 import { createVisualNote } from "@/app/actions/mindmap";
 import { useState, useCallback } from "react";
 import { useAutoSave } from "@/hooks/useAutoSave";
-import { Person, Note, Project } from "@prisma/client";
-import { MultiSelect } from "@/components/ui/multi-select";
+import { Note } from "@prisma/client";
 import { SmartTextarea } from "@/components/ui/SmartTextarea";
 import { RichTextEditor } from "@/components/ui/RichTextEditor";
 import { BrainCircuit, StickyNote } from "lucide-react";
@@ -38,29 +37,24 @@ const noteSchema = z.object({
     theme: z.string().optional(),
     content: z.string().optional(),
     context: z.enum(["SAUDE", "INTELECTUAL", "EMOCIONAL", "REALIZACAO", "FINANCEIRO", "SOCIAL", "FAMILIA", "RELACIONAMENTO", "VIDA_SOCIAL", "LAZER", "FELICIDADE", "ESPIRITUAL"]),
-    personIds: z.array(z.string()).optional(),
-    projectId: z.string().optional(),
     type: z.enum(["TEXT", "MINDMAP"]),
 });
 
 type NoteFormValues = z.infer<typeof noteSchema>;
 
 interface NoteWithRelations extends Note {
-    people: Person[];
     type: "TEXT" | "MINDMAP";
 }
 
 interface NoteFormProps {
-    people: Person[];
     notes: Note[];
-    projects: Project[];
     initialData?: NoteWithRelations;
     onSuccess?: () => void;
     defaultType?: "TEXT" | "MINDMAP";
     isReadOnly?: boolean;
 }
 
-export function NoteForm({ people, notes, projects, initialData, onSuccess, defaultType, isReadOnly = false }: NoteFormProps) {
+export function NoteForm({ notes, initialData, onSuccess, defaultType, isReadOnly = false }: NoteFormProps) {
     const [loading, setLoading] = useState(false);
 
     const form = useForm<NoteFormValues>({
@@ -70,8 +64,6 @@ export function NoteForm({ people, notes, projects, initialData, onSuccess, defa
             theme: initialData?.theme || "",
             content: initialData?.content || "",
             context: (initialData?.context as any) || "SAUDE",
-            personIds: initialData?.people?.map((p: any) => p.id) || [],
-            projectId: initialData?.projectId || "none",
             type: initialData?.type || defaultType || "TEXT",
         },
     });
@@ -237,51 +229,7 @@ export function NoteForm({ people, notes, projects, initialData, onSuccess, defa
                         </FormItem>
                     )}
                 />
-                <FormField
-                    control={form.control}
-                    name="personIds"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Vínculos (Pessoas)</FormLabel>
-                            <FormControl>
-                                <MultiSelect
-                                    options={people.map(p => ({ label: p.name, value: p.id }))}
-                                    selected={field.value || []}
-                                    onChange={field.onChange}
-                                    placeholder="Selecione..."
-                                    disabled={isReadOnly}
-                                />
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
-                
-                <FormField
-                    control={form.control}
-                    name="projectId"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Vínculo com Projeto</FormLabel>
-                            <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isReadOnly}>
-                                <FormControl>
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Selecione um projeto" />
-                                    </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                    <SelectItem value="none">Nenhum</SelectItem>
-                                    {projects.map((p) => (
-                                        <SelectItem key={p.id} value={p.id}>
-                                            {p.name}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
+
 
                 {noteType === "TEXT" ? (
                     <FormField

@@ -32,32 +32,9 @@ import { ManualDialog } from "./ManualDialog";
 
 const navigation = [
   { name: "Dashboard", href: "/", icon: LayoutDashboard },
-  {
-    name: "Execução",
-    icon: FolderOpen,
-    children: [
-      { name: "Objetivos", href: "/goals", icon: Target },
-      { name: "Agile", href: "/agile", icon: KanbanSquare },
-      { name: "Rotinas & SOPs", href: "/routines", icon: ClipboardList },
-      { name: "Acomp. Processos", href: "/processes", icon: List },
-      { name: "Projetos", href: "/projects", icon: FolderOpen },
-      { name: "Tarefas", href: "/tasks", icon: CheckSquare },
-      { name: "Agenda", href: "/agenda", icon: Calendar },
-    ],
-  },
-  { name: "Pessoas", href: "/people", icon: Users },
-  {
-    name: "Conhecimento",
-    icon: BookOpen,
-    children: [
-      { name: "Estudos", href: "/studies", icon: BookOpen },
-      { name: "Reuniões", href: "/meetings", icon: Users },
-      { name: "Aulas", href: "/lessons", icon: GraduationCap },
-      { name: "Notas", href: "/notes", icon: StickyNote },
-    ],
-  },
-  { name: "Finanças", href: "/finance", icon: Wallet },
-  { name: "VIDA", href: "/spiritual", icon: Heart },
+  { name: "Acomp. Processos", href: "/processes", icon: List },
+  { name: "Rotinas & SOPs", href: "/routines", icon: ClipboardList },
+  { name: "Notas & Mapas", href: "/notes", icon: StickyNote },
   {
     name: "Sistema",
     icon: UserCircle,
@@ -71,10 +48,9 @@ const navigation = [
 // Items displayed in the mobile bottom navigation (most important ones)
 const bottomNavItems = [
   { name: "Dashboard", href: "/", icon: LayoutDashboard },
-  { name: "Agenda", href: "/agenda", icon: Calendar },
-  { name: "Tarefas", href: "/tasks", icon: CheckSquare },
-  { name: "Finanças", href: "/finance", icon: Wallet },
-  { name: "Estudos", href: "/studies", icon: BookOpen },
+  { name: "Processos", href: "/processes", icon: List },
+  { name: "Rotinas", href: "/routines", icon: ClipboardList },
+  { name: "Notas", href: "/notes", icon: StickyNote },
 ];
 
 export function Sidebar() {

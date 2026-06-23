@@ -1,14 +1,12 @@
 import { NextResponse } from "next/server";
-import { PrismaClient } from "@prisma/client";
+import { db as prisma } from "@/lib/db";
 import webpush from "web-push";
-
-const prisma = new PrismaClient();
 
 export async function GET(req: Request) {
   try {
     // Configure VAPID Keys lazily at runtime
     webpush.setVapidDetails(
-      `mailto:${process.env.NEXTAUTH_URL ? new URL(process.env.NEXTAUTH_URL).hostname : 'admin@sopp.com'}`,
+      `mailto:${process.env.NEXTAUTH_URL ? new URL(process.env.NEXTAUTH_URL).hostname : "admin@sopp.com"}`,
       process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || "placeholder",
       process.env.VAPID_PRIVATE_KEY || "placeholder"
     );
@@ -33,7 +31,6 @@ export async function GET(req: Request) {
         },
       },
       include: {
-        event: true,
         task: true,
       },
     });
@@ -41,10 +38,15 @@ export async function GET(req: Request) {
     let sentCount = 0;
 
     for (const alarm of dueAlarms) {
-      const subscriptions = await prisma.pushSubscription.findMany({});
-      const title = alarm.event ? "Compromisso 📅" : "Lembrete de Tarefa 📝";
-      const body = alarm.event ? alarm.event.title : (alarm.task ? alarm.task.title : "Você tem um lembrete!");
-      const url = alarm.event ? `/agenda` : `/tasks`;
+      if (!alarm.task?.userId) continue;
+
+      const subscriptions = await prisma.pushSubscription.findMany({
+        where: { userId: alarm.task.userId }
+      });
+
+      const title = "Lembrete de Tarefa 📝";
+      const body = alarm.task.title;
+      const url = alarm.task.listId ? `/processes/${alarm.task.listId}` : `/processes`;
 
       for (const sub of subscriptions) {
         try {
@@ -64,7 +66,7 @@ export async function GET(req: Request) {
           );
         } catch (err: any) {
           if (err.statusCode === 410 || err.statusCode === 404) {
-            await prisma.pushSubscription.delete({ where: { id: sub.id } });
+            await prisma.pushSubscription.delete({ where: { id: sub.id } }).catch(() => {});
           }
         }
       }

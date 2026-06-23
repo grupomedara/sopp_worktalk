@@ -353,9 +353,6 @@ export async function getList(id: string) {
                 },
                 folder: true,
                 tasks: {
-                    include: {
-                        responsible: true
-                    },
                     orderBy: [{ status: "asc" }, { createdAt: "desc" }]
                 }
             }
@@ -495,7 +492,6 @@ export async function updateListTask(taskId: string, data: {
     priority?: string;
     customFieldValues?: any;
     date?: Date | null;
-    responsibleId?: string | null;
 }) {
     try {
         const session = await auth();
@@ -542,7 +538,6 @@ export async function updateListTask(taskId: string, data: {
                 priority: data.priority !== undefined ? data.priority : undefined,
                 customFieldValues: data.customFieldValues !== undefined ? data.customFieldValues : undefined,
                 date: data.date !== undefined ? data.date : undefined,
-                responsibleId: data.responsibleId !== undefined ? data.responsibleId : undefined,
                 startedAt: startedAtUpdate !== undefined ? startedAtUpdate : undefined,
                 completedAt: completedAtUpdate !== undefined ? completedAtUpdate : undefined
             }
@@ -803,7 +798,6 @@ export async function duplicateList(listId: string, newListName: string, targetS
                 status: "PENDING" as Status,
                 listId: newList.id,
                 userId: userId,
-                responsibleId: t.responsibleId,
                 customFieldValues: t.customFieldValues || {}
             }));
 

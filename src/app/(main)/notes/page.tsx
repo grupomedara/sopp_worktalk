@@ -1,6 +1,4 @@
 import { getNotes } from "@/app/actions/notes";
-import { getPeople } from "@/app/actions/people";
-import { getProjects } from "@/app/actions/projects";
 import { NoteList } from "./NoteList";
 import { NoteHeaderActions } from "./NoteHeaderActions";
 import { auth } from "@/auth";
@@ -19,12 +17,6 @@ export default async function NotesPage({
     const result = await getNotes(sort, order);
     const notes = result.data || [];
 
-    const peopleResult = await getPeople();
-    const people = peopleResult.data || [];
-
-    const projectsResult = await getProjects();
-    const projects = projectsResult.data || [];
-
     const session = await auth();
     const currentUserId = session?.user?.id;
 
@@ -38,13 +30,11 @@ export default async function NotesPage({
                     </p>
                 </div>
                 <NoteHeaderActions
-                    people={people}
                     notes={notes}
-                    projects={projects}
                 />
             </div>
 
-            <NoteList notes={notes} people={people} projects={projects} currentUserId={currentUserId} />
+            <NoteList notes={notes} currentUserId={currentUserId} />
         </div>
     );
 }

@@ -19,7 +19,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { MoreHorizontal, Trash2, Edit, BrainCircuit, ExternalLink, Search, Share2 } from "lucide-react";
 import { deleteNote, shareNote, unshareNote } from "@/app/actions/notes";
-import { Note, Person, Project } from "@prisma/client";
+import { Note } from "@prisma/client";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import Link from "next/link";
@@ -30,18 +30,15 @@ import { NoteDialog } from "@/components/notes/NoteDialog";
 import { ShareDialog } from "@/components/common/ShareDialog";
 
 interface NoteWithRelations extends Note {
-    people: Person[];
     shares?: any[];
 }
 
 interface NoteListProps {
     notes: NoteWithRelations[];
-    people: Person[];
-    projects: Project[];
     currentUserId?: string;
 }
 
-export function NoteList({ notes, people, projects, currentUserId }: NoteListProps) {
+export function NoteList({ notes, currentUserId }: NoteListProps) {
     const [editingNote, setEditingNote] = useState<NoteWithRelations | null>(null);
     const [sharingNote, setSharingNote] = useState<NoteWithRelations | null>(null);
     const [searchTerm, setSearchTerm] = useState("");
@@ -156,8 +153,6 @@ export function NoteList({ notes, people, projects, currentUserId }: NoteListPro
                                         <SmartViewer
                                             content={note.content || ""}
                                             notes={notes}
-                                            people={people}
-                                            projects={projects}
                                         />
                                     </div>
                                 )}
@@ -182,15 +177,7 @@ export function NoteList({ notes, people, projects, currentUserId }: NoteListPro
                                         </div>
                                     );
                                 })()}
-                                {note.people && note.people.length > 0 && (
-                                    <div className="flex flex-wrap gap-1">
-                                        {note.people.map(p => (
-                                            <span key={p.id} className="text-[10px] bg-secondary text-secondary-foreground px-1.5 py-0.5 rounded-sm">
-                                                {p.name}
-                                            </span>
-                                        ))}
-                                    </div>
-                                )}
+
                                 <div className="text-[10px] text-muted-foreground w-full text-right mt-1">
                                     {format(new Date(note.createdAt), "dd 'de' MMM, yyyy", { locale: ptBR })}
                                 </div>
@@ -201,9 +188,7 @@ export function NoteList({ notes, people, projects, currentUserId }: NoteListPro
             </div>
 
             <NoteDialog
-                people={people}
                 notes={notes}
-                projects={projects}
                 initialData={editingNote || undefined}
                 open={!!editingNote}
                 onOpenChange={(open) => !open && setEditingNote(null)}

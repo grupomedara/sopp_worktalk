@@ -70,8 +70,6 @@ export async function createVisualNote(data: {
     theme?: string;
     content?: string;
     context: any;
-    personIds?: string[];
-    projectId?: string;
 }) {
     try {
         const session = await auth();
@@ -86,12 +84,6 @@ export async function createVisualNote(data: {
                 type: "MINDMAP",
                 user: {
                     connect: { id: session.user.id }
-                },
-                project: (!data.projectId || data.projectId === "none" || data.projectId === "")
-                    ? undefined
-                    : { connect: { id: data.projectId } },
-                people: {
-                    connect: data.personIds?.map(id => ({ id })) || []
                 },
                 mindMap: {
                     create: {

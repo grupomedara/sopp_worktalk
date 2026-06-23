@@ -11,8 +11,6 @@ export type CreateNoteData = {
     theme?: string;
     content?: string;
     context: Context;
-    personIds?: string[];
-    projectId?: string;
 };
 
 export async function createNote(data: CreateNoteData) {
@@ -27,10 +25,6 @@ export async function createNote(data: CreateNoteData) {
                 content: data.content,
                 context: data.context,
                 userId: session.user.id,
-                projectId: (!data.projectId || data.projectId === "none" || data.projectId === "") ? null : data.projectId,
-                people: {
-                    connect: data.personIds?.map(id => ({ id })) || []
-                }
             },
         });
 
@@ -80,10 +74,6 @@ export async function updateNote(id: string, data: CreateNoteData) {
                 theme: data.theme,
                 content: data.content,
                 context: data.context,
-                projectId: (!data.projectId || data.projectId === "none" || data.projectId === "") ? null : data.projectId,
-                people: {
-                    set: data.personIds?.map(id => ({ id })) || []
-                }
             },
         });
 
@@ -129,8 +119,6 @@ export async function getNotes(sort: string = "createdAt", order: "asc" | "desc"
             },
             orderBy: { [sort]: order },
             include: {
-                people: true,
-                project: true,
                 shares: {
                     include: {
                         user: {

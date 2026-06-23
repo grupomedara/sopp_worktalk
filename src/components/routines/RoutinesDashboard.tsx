@@ -30,24 +30,11 @@ import {
     DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
 
-interface PersonOption {
-    id: string;
-    name: string;
-    type: string;
-}
-
-interface ProjectOption {
-    id: string;
-    name: string;
-}
-
 interface RoutinesDashboardProps {
-    initialPeople: PersonOption[];
-    initialProjects: ProjectOption[];
     currentUserId?: string;
 }
 
-export function RoutinesDashboard({ initialPeople, initialProjects, currentUserId }: RoutinesDashboardProps) {
+export function RoutinesDashboard({ currentUserId }: RoutinesDashboardProps) {
     const { toast } = useToast();
 
     const [selectedDate, setSelectedDate] = useState<string>(
@@ -59,7 +46,6 @@ export function RoutinesDashboard({ initialPeople, initialProjects, currentUserI
     const [isPending, startTransition] = useTransition();
 
     // Filtering states
-    const [responsibleFilter, setResponsibleFilter] = useState<string>("all");
     const [searchQuery, setSearchQuery] = useState<string>("");
 
     // Collapsed lists
@@ -82,8 +68,6 @@ export function RoutinesDashboard({ initialPeople, initialProjects, currentUserI
     const [routineTitle, setRoutineTitle] = useState("");
     const [routineRole, setRoutineRole] = useState("");
     const [routineDescription, setRoutineDescription] = useState("");
-    const [routineResponsible, setRoutineResponsible] = useState("");
-    const [routineProject, setRoutineProject] = useState("");
 
     // Dialog state for Adding Routine Steps (Item with Recurrence)
     const [isStepDialogOpen, setIsStepDialogOpen] = useState(false);
@@ -168,9 +152,7 @@ export function RoutinesDashboard({ initialPeople, initialProjects, currentUserI
         const data = {
             title: routineTitle,
             role: routineRole || null,
-            description: routineDescription || null,
-            responsibleId: routineResponsible || null,
-            projectId: routineProject || null
+            description: routineDescription || null
         };
 
         setLoading(true);
@@ -394,8 +376,6 @@ export function RoutinesDashboard({ initialPeople, initialProjects, currentUserI
         setRoutineTitle("");
         setRoutineRole("");
         setRoutineDescription("");
-        setRoutineResponsible("");
-        setRoutineProject("");
     };
 
     const clearStepForm = () => {
@@ -418,8 +398,6 @@ export function RoutinesDashboard({ initialPeople, initialProjects, currentUserI
         setRoutineTitle(r.title);
         setRoutineRole(r.role || "");
         setRoutineDescription(r.description || "");
-        setRoutineResponsible(r.responsible?.id || "");
-        setRoutineProject(r.project?.id || "");
         setIsRoutineDialogOpen(true);
     };
 
@@ -431,11 +409,10 @@ export function RoutinesDashboard({ initialPeople, initialProjects, currentUserI
 
     // Filter routines
     const filteredRoutines = routines.filter(r => {
-        const matchesResponsible = responsibleFilter === "all" || r.responsible?.id === responsibleFilter;
         const matchesSearch = r.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
                               (r.role && r.role.toLowerCase().includes(searchQuery.toLowerCase())) ||
                               (r.description && r.description.toLowerCase().includes(searchQuery.toLowerCase()));
-        return matchesResponsible && matchesSearch;
+        return matchesSearch;
     });
 
     const parsedDate = new Date(selectedDate + "T12:00:00");
@@ -502,20 +479,6 @@ export function RoutinesDashboard({ initialPeople, initialProjects, currentUserI
                     />
                 </div>
 
-                {/* Responsible Filter */}
-                <div className="flex items-center gap-2">
-                    <Users className="w-4 h-4 text-zinc-500 shrink-0" />
-                    <select
-                        value={responsibleFilter}
-                        onChange={(e) => setResponsibleFilter(e.target.value)}
-                        className="w-full bg-zinc-900/60 border border-zinc-800/80 text-zinc-300 rounded-lg px-3 py-2.5 text-xs font-black uppercase tracking-wider focus:outline-none focus:border-primary/50 transition-colors"
-                    >
-                        <option value="all">TODOS OS RESPONSÁVEIS</option>
-                        {initialPeople.map(p => (
-                            <option key={p.id} value={p.id}>{p.name} ({p.type})</option>
-                        ))}
-                    </select>
-                </div>
             </div>
 
             {/* Error view */}
@@ -583,19 +546,7 @@ export function RoutinesDashboard({ initialPeople, initialProjects, currentUserI
                                                 </span>
                                             )}
 
-                                            {/* Responsible Badge */}
-                                            {routine.responsible && (
-                                                <span className="text-[8px] font-black uppercase tracking-widest bg-pink-500/10 text-pink-400 border border-pink-500/10 px-2 py-0.5 rounded flex items-center gap-1">
-                                                    <Users className="w-2.5 h-2.5" /> @{routine.responsible.name}
-                                                </span>
-                                            )}
 
-                                            {/* Project Badge */}
-                                            {routine.project && (
-                                                <span className="text-[8px] font-black uppercase tracking-widest bg-emerald-500/10 text-emerald-400 border border-emerald-500/10 px-2 py-0.5 rounded flex items-center gap-1">
-                                                    <Folder className="w-2.5 h-2.5" /> {routine.project.name}
-                                                </span>
-                                            )}
                                         </div>
 
                                         <h3 className="text-white text-base font-black uppercase tracking-tight truncate leading-tight group">
@@ -904,38 +855,7 @@ export function RoutinesDashboard({ initialPeople, initialProjects, currentUserI
                             />
                         </div>
 
-                        {/* Dropdowns responsible and project */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            {/* Responsible dropdown */}
-                            <div className="space-y-1.5">
-                                <Label className="text-[10px] font-black uppercase tracking-widest text-zinc-400 flex items-center gap-1"><Users className="w-3.5 h-3.5" /> Responsável (Opcional)</Label>
-                                <select
-                                    value={routineResponsible}
-                                    onChange={(e) => setRoutineResponsible(e.target.value)}
-                                    className="w-full bg-zinc-900 border border-zinc-800 text-zinc-300 rounded-lg px-3 py-2.5 text-xs font-black uppercase tracking-wider focus:outline-none focus:border-primary/40"
-                                >
-                                    <option value="">Nenhum (Checklist Pessoal)</option>
-                                    {initialPeople.map(p => (
-                                        <option key={p.id} value={p.id}>{p.name}</option>
-                                    ))}
-                                </select>
-                            </div>
 
-                            {/* Project dropdown */}
-                            <div className="space-y-1.5">
-                                <Label className="text-[10px] font-black uppercase tracking-widest text-zinc-400 flex items-center gap-1"><Folder className="w-3.5 h-3.5" /> Projeto Vinculado (Opcional)</Label>
-                                <select
-                                    value={routineProject}
-                                    onChange={(e) => setRoutineProject(e.target.value)}
-                                    className="w-full bg-zinc-900 border border-zinc-800 text-zinc-300 rounded-lg px-3 py-2.5 text-xs font-black uppercase tracking-wider focus:outline-none focus:border-primary/40"
-                                >
-                                    <option value="">Nenhum</option>
-                                    {initialProjects.map(p => (
-                                        <option key={p.id} value={p.id}>{p.name}</option>
-                                    ))}
-                                </select>
-                            </div>
-                        </div>
                     </div>
 
                     <div className="flex items-center justify-end gap-3 border-t border-zinc-900/80 pt-5 mt-4 w-full">

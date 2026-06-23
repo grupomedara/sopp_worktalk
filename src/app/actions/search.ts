@@ -1,9 +1,7 @@
 "use server";
 
-import { PrismaClient } from "@prisma/client";
+import { db } from "@/lib/db";
 import { auth } from "@/auth";
-
-const prisma = new PrismaClient();
 
 export async function unifiedSearch(query: string) {
     if (!query || query.length < 2) return { success: true, data: [] };
@@ -14,8 +12,8 @@ export async function unifiedSearch(query: string) {
 
         const userId = session.user.id;
 
-        const [notes, projects, tasks, people] = await Promise.all([
-            prisma.note.findMany({
+        const [notes, tasks, lists] = await Promise.all([
+            db.note.findMany({
                 where: {
                     userId,
                     OR: [
@@ -25,26 +23,21 @@ export async function unifiedSearch(query: string) {
                 },
                 take: 5
             }),
-            prisma.project.findMany({
-                where: {
-                    OR: [
-                        { ownerId: userId },
-                        { members: { some: { id: userId } } }
-                    ],
-                    name: { contains: query, mode: 'insensitive' }
-                },
-                take: 5
-            }),
-            prisma.task.findMany({
+            db.task.findMany({
                 where: {
                     userId,
                     title: { contains: query, mode: 'insensitive' }
                 },
                 take: 5
             }),
-            prisma.person.findMany({
+            db.list.findMany({
                 where: {
-                    userId,
+                    space: {
+                        OR: [
+                            { userId },
+                            { shares: { some: { userId } } }
+                        ]
+                    },
                     name: { contains: query, mode: 'insensitive' }
                 },
                 take: 5
@@ -53,9 +46,8 @@ export async function unifiedSearch(query: string) {
 
         const results = [
             ...notes.map(n => ({ id: n.id, title: n.title, type: 'Nota', url: `/notes?id=${n.id}` })),
-            ...projects.map(p => ({ id: p.id, title: p.name, type: 'Projeto', url: p.type === 'AGILE' ? `/agile/${p.id}` : `/projects` })),
-            ...tasks.map(t => ({ id: t.id, title: t.title, type: 'Tarefa', url: `/tasks` })),
-            ...people.map(p => ({ id: p.id, title: p.name, type: 'Pessoa', url: `/people` }))
+            ...tasks.map(t => ({ id: t.id, title: t.title, type: 'Tarefa', url: t.listId ? `/processes/${t.listId}` : `/processes` })),
+            ...lists.map(l => ({ id: l.id, title: l.name, type: 'Lista', url: `/processes/${l.id}` }))
         ];
 
         return { success: true, data: results };

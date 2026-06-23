@@ -17,396 +17,31 @@ model User {
   updatedAt         DateTime           @updatedAt
   document          String             @unique
   role              String             @default("USER")
-  books             Book[]
-  people            Person[]
-  prayers           Prayer[]
-  projects          Project[]          @relation("ProjectOwner")
   pushSubscriptions PushSubscription[]
-  userBiblePlans    UserBiblePlan[]
-  memberProjects    Project[]          @relation("ProjectMembers")
-  goals             Goal[]
   tasks             Task[]
-  studies           Study[]
-  lessons           Lesson[]
-  finances          Finance[]
-  events            Event[]
   notes             Note[]
-  fichamentos       Fichamento[]
-  interactions      Interaction[]
   spaces            Space[]
   spaceShares       SpaceShare[]
-  projectShares     ProjectShare[]
-  timeLogs          TimeLog[]
   routines          Routine[]
   routineExecutions RoutineExecution[]
   routineShares     RoutineShare[]
-  meetings          Meeting[]
   noteShares        NoteShare[]
-  meetingShares     MeetingShare[]
-}
-
-model Person {
-  id                String        @id @default(uuid())
-  name              String
-  type              PersonType
-  context           Context
-  notes             String?
-  createdAt         DateTime      @default(now())
-  updatedAt         DateTime      @updatedAt
-  birthDate         DateTime?
-  email             String?
-  phone             String?
-  relationship      String?
-  rg                String?
-  document          String?
-  city              String?
-  complement        String?
-  district          String?
-  fantasyName       String?
-  kind              PersonKind    @default(FISICA)
-  mobile            String?
-  number            String?
-  occupation        String?
-  state             String?
-  stateRegistration String?
-  street            String?
-  website           String?
-  zipCode           String?
-  userId            String?
-  nextFollowUpAt    DateTime?
-  stage             String?
-  reminderMinutes   Int?
-  finances          Finance[]
-  interactions      Interaction[]
-  lessons           Lesson[]
-  user              User?         @relation(fields: [userId], references: [id])
-  tasks             Task[]
-  relatedNotes      Note[]        @relation("NoteToPerson")
-  projects          Project[]     @relation("PersonToProject")
-  routines          Routine[]
-  meetings          Meeting[]     @relation("MeetingParticipants")
-
-  @@index([userId])
-}
-
-model Goal {
-  id         String    @id @default(uuid())
-  title      String
-  lifeArea   String
-  deadline   DateTime?
-  metric     String?
-  motivation String?
-  status     Status    @default(PENDING)
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime  @updatedAt
-  progress   Int       @default(0)
-  userId     String?
-  user       User?     @relation(fields: [userId], references: [id])
-  projects   Project[]
-
-  @@index([userId])
-}
-
-model Project {
-  id         String      @id @default(uuid())
-  name       String
-  context    Context
-  status     Status      @default(IN_PROGRESS)
-  deadline   DateTime?
-  createdAt  DateTime    @default(now())
-  updatedAt  DateTime    @updatedAt
-  goalId     String?
-  ownerId    String?
-  type       String      @default("STANDARD")
-  events     Event[]
-  finances   Finance[]
-  objectives Objective[]
-  goal       Goal?       @relation(fields: [goalId], references: [id])
-  owner      User?       @relation("ProjectOwner", fields: [ownerId], references: [id])
-  sprints    Sprint[]
-  tasks      Task[]
-  notes      Note[]
-  people     Person[]    @relation("PersonToProject")
-  members    User[]      @relation("ProjectMembers")
-  shares     ProjectShare[]
-  routines   Routine[]
-}
-
-model Sprint {
-  id            String   @id @default(uuid())
-  name          String
-  startDate     DateTime
-  endDate       DateTime
-  status        String   @default("PLANNING")
-  goal          String?
-  projectId     String
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-  retrospective String?
-  project       Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  tasks         Task[]
-}
-
-model Task {
-  id                 String         @id @default(uuid())
-  title              String
-  context            Context?
-  priority           String
-  date               DateTime?
-  recurrence         String?
-  energy             EnergyLevel?
-  status             Status         @default(PENDING)
-  createdAt          DateTime       @default(now())
-  updatedAt          DateTime       @updatedAt
-  startedAt          DateTime?
-  completedAt        DateTime?
-  projectId          String?
-  kanbanColumn       String?        @default("TODO")
-  originalId         String?
-  points             Int?
-  recurrenceEndDate  DateTime?
-  recurrenceInterval Int?
-  recurrenceType     RecurrenceType @default(NONE)
-  sprintId           String?
-  responsibleId      String?
-  color              String?
-  reminderMinutes    Int?
-  userId             String?
-  alarms             Alarm[]
-  project            Project?       @relation(fields: [projectId], references: [id])
-  responsible        Person?        @relation(fields: [responsibleId], references: [id])
-  sprint             Sprint?        @relation(fields: [sprintId], references: [id])
-  user               User?          @relation(fields: [userId], references: [id])
-  listId             String?
-  list               List?          @relation(fields: [listId], references: [id], onDelete: Cascade)
-  customFieldValues  Json?
-  estimatedTime      Int?           @default(0)
-  timeLogs           TimeLog[]
-
-  @@index([projectId])
-  @@index([responsibleId])
-  @@index([sprintId])
-  @@index([status])
-  @@index([userId])
-  @@index([listId])
-}
-
-model Study {
-  id        String   @id @default(uuid())
-  course    String
-  subject   String
-  topic     String
-  content   String?
-  notes     String?
-  timeSpent Int?
-  status    Status   @default(PENDING)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  noteId    String?
-  userId    String?
-  note      Note?    @relation("StudyNote", fields: [noteId], references: [id])
-  user      User?    @relation(fields: [userId], references: [id])
-
-  @@index([userId])
-}
-
-model Lesson {
-  id              String    @id @default(uuid())
-  clientOrGroup   String
-  topic           String
-  objective       String?
-  appliedContent  String?
-  materials       String?
-  followUp        String?
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
-  personId        String?
-  date            DateTime  @default(now())
-  materialUrl     String?
-  noteId          String?
-  rating          Int?
-  studentFeedback String?
-  userId          String?
-  finances        Finance[]
-  note            Note?     @relation("LessonNote", fields: [noteId], references: [id])
-  person          Person?   @relation(fields: [personId], references: [id])
-  user            User?     @relation(fields: [userId], references: [id])
-
-  @@index([userId])
-}
-
-model Finance {
-  id                String          @id @default(uuid())
-  description       String
-  category          FinanceCategory
-  type              FinanceType
-  amount            Decimal         @db.Decimal(10, 2)
-  dueDate           DateTime?
-  status            Status          @default(PENDING)
-  createdAt         DateTime        @default(now())
-  updatedAt         DateTime        @updatedAt
-  personId          String?
-  projectId         String?
-  lessonId          String?
-  reminderMinutes   Int?
-  parentId          String?
-  recurrenceEndDate DateTime?
-  recurrenceType    RecurrenceType  @default(NONE)
-  userId            String?
-  lesson            Lesson?         @relation(fields: [lessonId], references: [id])
-  person            Person?         @relation(fields: [personId], references: [id])
-  project           Project?        @relation(fields: [projectId], references: [id])
-  user              User?           @relation(fields: [userId], references: [id])
-
-  @@index([projectId])
-  @@index([personId])
-  @@index([dueDate])
-  @@index([status])
-  @@index([userId])
-}
-
-model Event {
-  id                 String         @id @default(uuid())
-  title              String
-  type               Context
-  startDate          DateTime
-  endDate            DateTime
-  createdAt          DateTime       @default(now())
-  updatedAt          DateTime       @updatedAt
-  projectId          String?
-  originalId         String?
-  recurrenceEndDate  DateTime?
-  recurrenceInterval Int?
-  recurrenceType     RecurrenceType @default(NONE)
-  color              String?
-  reminderMinutes    Int?
-  startNotified      Boolean        @default(false)
-  userId             String?
-  alarms             Alarm[]
-  project            Project?       @relation(fields: [projectId], references: [id])
-  user               User?          @relation(fields: [userId], references: [id])
-
-  @@index([projectId])
-  @@index([startDate])
-  @@index([userId])
-}
-
-model Objective {
-  id          String      @id @default(uuid())
-  title       String
-  description String?
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
-  projectId   String
-  keyResults  KeyResult[]
-  project     Project     @relation(fields: [projectId], references: [id], onDelete: Cascade)
-
-  @@index([projectId])
-}
-
-model KeyResult {
-  id           String    @id @default(uuid())
-  title        String
-  description  String?
-  currentValue Float     @default(0)
-  targetValue  Float     @default(100)
-  unit         String    @default("%")
-  lastCheckIn  DateTime?
-  completedAt  DateTime?
-  objectiveId  String
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
-  objective    Objective @relation(fields: [objectiveId], references: [id], onDelete: Cascade)
-
-  @@index([objectiveId])
 }
 
 model Note {
-  id        String   @id @default(uuid())
+  id        String      @id @default(uuid())
   title     String
   theme     String?
   content   String?
   context   Context
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  mindMapId String?  @unique
-  type      NoteType @default(TEXT)
-  bookId    String?
-  projectId String?
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+  mindMapId String?     @unique
+  type      NoteType    @default(TEXT)
   userId    String?
-  lessons   Lesson[] @relation("LessonNote")
-  book      Book?    @relation(fields: [bookId], references: [id])
-  project   Project? @relation(fields: [projectId], references: [id])
-  mindMap   MindMap? @relation(fields: [mindMapId], references: [id])
-  studies   Study[]  @relation("StudyNote")
-  people    Person[] @relation("NoteToPerson")
-  user      User?    @relation(fields: [userId], references: [id])
+  mindMap   MindMap?    @relation(fields: [mindMapId], references: [id])
+  user      User?       @relation(fields: [userId], references: [id])
   shares    NoteShare[]
-
-  @@index([userId])
-}
-
-model Book {
-  id             String        @id @default(uuid())
-  title          String
-  author         String
-  totalChapters  Int
-  currentChapter Int           @default(0)
-  status         String        @default("READING")
-  userId         String
-  createdAt      DateTime      @default(now())
-  updatedAt      DateTime      @updatedAt
-  user           User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  notes          Note[]
-  fichamentos    Fichamento[]
-}
-
-model Fichamento {
-  id              String               @id @default(uuid())
-  title           String
-  type            FichamentoType
-  sourceType      FichamentoSourceType @default(LIVRO)
-  // Referência universal
-  authorLastName  String?
-  authorFirstName String?
-  sourceTitle     String?
-  year            Int?
-  url             String?
-  // Livro / Artigo
-  edition         String?
-  city            String?
-  publisher       String?
-  pages           String?
-  // Vídeo / Podcast / Curso / Site
-  platform        String?
-  duration        String?
-  accessDate      String?
-  // Conteúdo
-  keywords        String?
-  mainContent     String?
-  personalNote    String?
-  // Vínculo com Livro
-  bookId          String?
-  userId          String?
-  book            Book?                @relation(fields: [bookId], references: [id])
-  user            User?                @relation(fields: [userId], references: [id])
-  createdAt       DateTime             @default(now())
-  updatedAt       DateTime             @updatedAt
-
-  @@index([userId])
-}
-
-model Interaction {
-  id        String   @id @default(uuid())
-  personId  String
-  date      DateTime @default(now())
-  subject   String
-  type      String
-  notes     String?
-  createdAt DateTime @default(now())
-  userId    String?
-  person    Person   @relation(fields: [personId], references: [id], onDelete: Cascade)
-  user      User?    @relation(fields: [userId], references: [id])
 
   @@index([userId])
 }
@@ -430,62 +65,12 @@ model PushSubscription {
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
-model Prayer {
-  id          String   @id @default(uuid())
-  title       String
-  description String?
-  category    String
-  status      Status   @default(PENDING)
-  isPublic    Boolean  @default(false)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  userId      String
-  user        User     @relation(fields: [userId], references: [id])
-}
-
-model BibleReadingPlan {
-  id          String            @id @default(uuid())
-  title       String
-  description String?
-  type        String
-  totalDays   Int
-  createdAt   DateTime          @default(now())
-  updatedAt   DateTime          @updatedAt
-  readings    BibleReadingDay[]
-  userPlans   UserBiblePlan[]
-}
-
-model BibleReadingDay {
-  id        String           @id @default(uuid())
-  planId    String
-  day       Int
-  reference String
-  books     String
-  chapters  String
-  plan      BibleReadingPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
-}
-
-model UserBiblePlan {
-  id          String           @id @default(uuid())
-  userId      String
-  planId      String
-  currentDay  Int              @default(1)
-  status      Status           @default(IN_PROGRESS)
-  startedAt   DateTime         @default(now())
-  completedAt DateTime?
-  progress    Float            @default(0)
-  plan        BibleReadingPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
-  user        User             @relation(fields: [userId], references: [id], onDelete: Cascade)
-}
-
 model Alarm {
   id        String   @id @default(uuid())
   dateTime  DateTime
   sent      Boolean  @default(false)
-  eventId   String?
   taskId    String?
   createdAt DateTime @default(now())
-  event     Event?   @relation(fields: [eventId], references: [id], onDelete: Cascade)
   task      Task?    @relation(fields: [taskId], references: [id], onDelete: Cascade)
 }
 
@@ -494,41 +79,12 @@ enum NoteType {
   MINDMAP
 }
 
-enum FichamentoType {
-  CITACAO
-  RESUMO
-  BIBLIOGRAFICO
-  TEMATICO
-  COMENTARIO
-}
-
-enum FichamentoSourceType {
-  LIVRO
-  ARTIGO
-  VIDEO
-  PODCAST
-  CURSO_ONLINE
-  SITE
-  OUTRO
-}
-
-enum PersonType {
-  FILHO
-  CLIENTE
-  COLABORADOR
-  SOCIO
-  OUTRO
-}
-
 enum Context {
-  // Original
   FAMILIA
   EMPRESA
   PESSOAL
   ESTUDO
   ESPIRITUAL
-
-  // Wheel of Life 12 Areas (Expanding)
   SAUDE
   INTELECTUAL
   EMOCIONAL
@@ -547,51 +103,12 @@ enum EnergyLevel {
   ALTA
 }
 
-enum FinanceType {
-  FIXO
-  VARIAVEL
-}
-
-enum FinanceCategory {
-  PESSOAL
-  EMPRESA
-  FILHO
-  RECEITA_SALARIO
-  RECEITA_INVESTIMENTO
-  RECEITA_VENDA
-  RECEITA_SERVICO
-  MORADIA
-  ALIMENTACAO
-  TRANSPORTE
-  SAUDE
-  EDUCACAO
-  SERVICOS_ESSENCIAIS
-  LAZER
-  RESTAURANTES
-  COMPRAS
-  VIAGENS
-  FILHO_ESCOLA
-  FILHO_SAUDE
-  FILHO_LAZER
-  EMPRESA_OPERACIONAL
-  EMPRESA_MARKETING
-  EMPRESA_IMPOSTOS
-  EMPRESA_EQUIPE
-  OUTRA_RECEITA
-  OUTROS
-}
-
 enum Status {
   PENDING
   IN_PROGRESS
   COMPLETED
   ARCHIVED
   CANCELED
-}
-
-enum PersonKind {
-  FISICA
-  JURIDICA
 }
 
 enum RecurrenceType {
@@ -669,36 +186,38 @@ model SpaceShare {
   @@index([userId])
 }
 
-model ProjectShare {
-  id        String   @id @default(uuid())
-  projectId String
-  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  role      String   @default("VIEWER") // "VIEWER" or "EDITOR"
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+model Task {
+  id                 String         @id @default(uuid())
+  title              String
+  context            Context?
+  priority           String
+  date               DateTime?
+  recurrence         String?
+  energy             EnergyLevel?
+  status             Status         @default(PENDING)
+  createdAt          DateTime       @default(now())
+  updatedAt          DateTime       @updatedAt
+  startedAt          DateTime?
+  completedAt        DateTime?
+  kanbanColumn       String?        @default("TODO")
+  originalId         String?
+  points             Int?
+  recurrenceEndDate  DateTime?
+  recurrenceInterval Int?
+  recurrenceType     RecurrenceType @default(NONE)
+  color              String?
+  reminderMinutes    Int?
+  userId             String?
+  alarms             Alarm[]
+  user               User?          @relation(fields: [userId], references: [id])
+  listId             String?
+  list               List?          @relation(fields: [listId], references: [id], onDelete: Cascade)
+  customFieldValues  Json?
+  estimatedTime      Int?           @default(0)
 
-  @@unique([projectId, userId])
-  @@index([projectId])
+  @@index([status])
   @@index([userId])
-}
-
-model TimeLog {
-  id        String    @id @default(uuid())
-  taskId    String
-  userId    String
-  startTime DateTime  @default(now())
-  endTime   DateTime?
-  duration  Int       @default(0) // in seconds
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-
-  task      Task      @relation(fields: [taskId], references: [id], onDelete: Cascade)
-  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([taskId])
-  @@index([userId])
+  @@index([listId])
 }
 
 model Routine {
@@ -710,19 +229,13 @@ model Routine {
   createdAt       DateTime           @default(now())
   updatedAt       DateTime           @updatedAt
   userId          String
-  responsibleId   String?
-  projectId       String?
   
   user            User               @relation(fields: [userId], references: [id], onDelete: Cascade)
-  responsible     Person?            @relation(fields: [responsibleId], references: [id], onDelete: SetNull)
-  project         Project?           @relation(fields: [projectId], references: [id], onDelete: SetNull)
   items           RoutineItem[]
   executions      RoutineExecution[]
   shares          RoutineShare[]
 
   @@index([userId])
-  @@index([responsibleId])
-  @@index([projectId])
 }
 
 model RoutineItem {
@@ -799,24 +312,6 @@ model RoutineShare {
   @@index([userId])
 }
 
-model Meeting {
-  id              String   @id @default(uuid())
-  companyOrPerson String
-  theme           String
-  date            DateTime
-  startTime       DateTime
-  endTime         DateTime
-  content         String?
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-  userId          String?
-  user            User?    @relation(fields: [userId], references: [id])
-  participants    Person[] @relation("MeetingParticipants")
-  shares          MeetingShare[]
-
-  @@index([userId])
-}
-
 model NoteShare {
   id        String   @id @default(uuid())
   noteId    String
@@ -829,20 +324,5 @@ model NoteShare {
 
   @@unique([noteId, userId])
   @@index([noteId])
-  @@index([userId])
-}
-
-model MeetingShare {
-  id        String   @id @default(uuid())
-  meetingId String
-  meeting   Meeting  @relation(fields: [meetingId], references: [id], onDelete: Cascade)
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  role      String   @default("VIEWER") // "VIEWER" or "EDITOR"
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@unique([meetingId, userId])
-  @@index([meetingId])
   @@index([userId])
 }
