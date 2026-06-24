@@ -33,6 +33,10 @@ export const authConfig = {
                 session.user.id = token.sub;
                 // @ts-ignore
                 session.user.role = token.role as string;
+                // @ts-ignore
+                session.user.tenantId = token.tenantId as string;
+                // @ts-ignore
+                session.user.tenantRole = token.tenantRole as string;
             }
             return session;
         },
@@ -40,6 +44,10 @@ export const authConfig = {
             if (user) {
                 // @ts-ignore
                 token.role = user.role;
+                // @ts-ignore
+                token.tenantId = user.tenantId;
+                // @ts-ignore
+                token.tenantRole = user.tenantRole;
             }
             return token;
         }

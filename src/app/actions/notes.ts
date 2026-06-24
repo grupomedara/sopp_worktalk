@@ -1,10 +1,11 @@
 "use server";
 
-import { PrismaClient, Note, Context } from "@prisma/client";
+import { Note, Context } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import { auth } from "@/auth";
+import { db } from "@/lib/db";
 
-const prisma = new PrismaClient();
+const prisma = db;
 
 export type CreateNoteData = {
     title: string;
@@ -18,6 +19,9 @@ export async function createNote(data: CreateNoteData) {
         const session = await auth();
         if (!session?.user?.id) return { success: false, error: "Unauthorized" };
 
+        // @ts-ignore
+        const tenantId = session.user.tenantId;
+
         const note = await prisma.note.create({
             data: {
                 title: data.title,
@@ -25,6 +29,7 @@ export async function createNote(data: CreateNoteData) {
                 content: data.content,
                 context: data.context,
                 userId: session.user.id,
+                tenantId: tenantId || null,
             },
         });
 
@@ -41,8 +46,12 @@ export async function createNote(data: CreateNoteData) {
 // ==========================================
 
 export async function verifyNoteEditorRights(noteId: string, userId: string): Promise<boolean> {
-    const note = await prisma.note.findUnique({
-        where: { id: noteId }
+    const session = await auth();
+    // @ts-ignore
+    const tenantId = session?.user?.tenantId;
+
+    const note = await prisma.note.findFirst({
+        where: { id: noteId, tenantId: tenantId || null }
     });
     if (!note) return false;
     if (note.userId === userId) return true;
@@ -110,8 +119,12 @@ export async function getNotes(sort: string = "createdAt", order: "asc" | "desc"
         const session = await auth();
         if (!session?.user?.id) return { success: false, error: "Unauthorized" };
 
+        // @ts-ignore
+        const tenantId = session.user.tenantId;
+
         const notes = await prisma.note.findMany({
             where: {
+                tenantId: tenantId || null,
                 OR: [
                     { userId: session.user.id },
                     { shares: { some: { userId: session.user.id } } }
@@ -149,15 +162,19 @@ export async function shareNote(noteId: string, emailOrCpf: string, role: "VIEWE
         const session = await auth();
         if (!session?.user?.id) return { success: false, error: "Unauthorized" };
 
-        // Ensure owner
+        // @ts-ignore
+        const tenantId = session.user.tenantId;
+
+        // Ensure owner and tenant
         const note = await prisma.note.findFirst({
-            where: { id: noteId, userId: session.user.id }
+            where: { id: noteId, userId: session.user.id, tenantId: tenantId || null }
         });
         if (!note) return { success: false, error: "Apenas o proprietário pode compartilhar a nota." };
 
-        // Search user by email or CPF
+        // Search user by email or CPF in same tenant
         const targetUser = await prisma.user.findFirst({
             where: {
+                tenantId: tenantId || null,
                 OR: [
                     { email: emailOrCpf },
                     { document: emailOrCpf }
@@ -198,8 +215,11 @@ export async function unshareNote(noteId: string, userId: string) {
         const session = await auth();
         if (!session?.user?.id) return { success: false, error: "Unauthorized" };
 
+        // @ts-ignore
+        const tenantId = session.user.tenantId;
+
         const note = await prisma.note.findFirst({
-            where: { id: noteId }
+            where: { id: noteId, tenantId: tenantId || null }
         });
         if (!note) return { success: false, error: "Nota não encontrada." };
 

@@ -12,10 +12,14 @@ export async function unifiedSearch(query: string) {
 
         const userId = session.user.id;
 
+        // @ts-ignore
+        const tenantId = session.user.tenantId;
+
         const [notes, tasks, lists] = await Promise.all([
             db.note.findMany({
                 where: {
                     userId,
+                    tenantId: tenantId || null,
                     OR: [
                         { title: { contains: query, mode: 'insensitive' } },
                         { content: { contains: query, mode: 'insensitive' } }
@@ -26,6 +30,10 @@ export async function unifiedSearch(query: string) {
             db.task.findMany({
                 where: {
                     userId,
+                    OR: [
+                        { list: { space: { tenantId: tenantId || null } } },
+                        { listId: null }
+                    ],
                     title: { contains: query, mode: 'insensitive' }
                 },
                 take: 5
@@ -33,6 +41,7 @@ export async function unifiedSearch(query: string) {
             db.list.findMany({
                 where: {
                     space: {
+                        tenantId: tenantId || null,
                         OR: [
                             { userId },
                             { shares: { some: { userId } } }

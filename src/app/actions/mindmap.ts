@@ -13,8 +13,11 @@ export async function saveMindMap(id: string, content: any) {
         const session = await auth();
         if (!session?.user?.id) return { success: false, error: "Unauthorized" };
 
+        // @ts-ignore
+        const tenantId = session.user.tenantId;
+
         const note = await prisma.note.findFirst({
-            where: { mindMapId: id }
+            where: { mindMapId: id, tenantId: tenantId || null }
         });
         if (!note) return { success: false, error: "Nota associada não encontrada." };
 
@@ -39,8 +42,11 @@ export async function getMindMap(id: string) {
         const session = await auth();
         if (!session?.user?.id) return { success: false, error: "Unauthorized" };
 
+        // @ts-ignore
+        const tenantId = session.user.tenantId;
+
         const note = await prisma.note.findFirst({
-            where: { mindMapId: id }
+            where: { mindMapId: id, tenantId: tenantId || null }
         });
         if (!note) return { success: false, error: "Nota associada não encontrada." };
 
@@ -75,6 +81,9 @@ export async function createVisualNote(data: {
         const session = await auth();
         if (!session?.user?.id) return { success: false, error: "Unauthorized" };
 
+        // @ts-ignore
+        const tenantId = session.user.tenantId;
+
         const note = await prisma.note.create({
             data: {
                 title: data.title,
@@ -82,6 +91,7 @@ export async function createVisualNote(data: {
                 content: data.content,
                 context: data.context,
                 type: "MINDMAP",
+                tenantId: tenantId || null,
                 user: {
                     connect: { id: session.user.id }
                 },

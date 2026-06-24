@@ -10,8 +10,12 @@ import { Status } from "@prisma/client";
 // ==========================================
 
 async function verifySpaceEditorRights(spaceId: string, userId: string): Promise<boolean> {
-    const space = await db.space.findUnique({
-        where: { id: spaceId }
+    const session = await auth();
+    // @ts-ignore
+    const tenantId = session?.user?.tenantId;
+
+    const space = await db.space.findFirst({
+        where: { id: spaceId, tenantId: tenantId || null }
     });
     if (!space) return false;
     if (space.userId === userId) return true;
@@ -37,8 +41,12 @@ export async function getSpaces() {
         const session = await auth();
         if (!session?.user?.id) return { success: false, error: "Unauthorized" };
 
+        // @ts-ignore
+        const tenantId = session.user.tenantId;
+
         const spaces = await db.space.findMany({
             where: {
+                tenantId: tenantId || null,
                 OR: [
                     { userId: session.user.id },
                     { shares: { some: { userId: session.user.id } } }
@@ -91,12 +99,16 @@ export async function createSpace(name: string, color?: string, icon?: string) {
         const session = await auth();
         if (!session?.user?.id) return { success: false, error: "Unauthorized" };
 
+        // @ts-ignore
+        const tenantId = session.user.tenantId;
+
         const space = await db.space.create({
             data: {
                 name,
                 color: color || "zinc",
                 icon: icon || "folder",
-                userId: session.user.id
+                userId: session.user.id,
+                tenantId: tenantId || null
             }
         });
 
@@ -113,9 +125,12 @@ export async function updateSpace(id: string, name: string, color?: string, icon
         const session = await auth();
         if (!session?.user?.id) return { success: false, error: "Unauthorized" };
 
-        // Ensure owner
+        // @ts-ignore
+        const tenantId = session.user.tenantId;
+
+        // Ensure owner and tenant
         const spaceExists = await db.space.findFirst({
-            where: { id, userId: session.user.id }
+            where: { id, userId: session.user.id, tenantId: tenantId || null }
         });
         if (!spaceExists) return { success: false, error: "Apenas o proprietário pode editar as configurações do espaço." };
 
@@ -137,9 +152,12 @@ export async function deleteSpace(id: string) {
         const session = await auth();
         if (!session?.user?.id) return { success: false, error: "Unauthorized" };
 
-        // Ensure owner
+        // @ts-ignore
+        const tenantId = session.user.tenantId;
+
+        // Ensure owner and tenant
         const spaceExists = await db.space.findFirst({
-            where: { id, userId: session.user.id }
+            where: { id, userId: session.user.id, tenantId: tenantId || null }
         });
         if (!spaceExists) return { success: false, error: "Apenas o proprietário pode excluir o espaço." };
 
@@ -160,15 +178,19 @@ export async function shareSpace(spaceId: string, emailOrCpf: string, role: "VIE
         const session = await auth();
         if (!session?.user?.id) return { success: false, error: "Unauthorized" };
 
-        // Ensure current user is the owner of the space
+        // @ts-ignore
+        const tenantId = session.user.tenantId;
+
+        // Ensure current user is the owner and tenant of the space
         const space = await db.space.findFirst({
-            where: { id: spaceId, userId: session.user.id }
+            where: { id: spaceId, userId: session.user.id, tenantId: tenantId || null }
         });
         if (!space) return { success: false, error: "Apenas o proprietário pode compartilhar o espaço." };
 
-        // Search user by email or CPF (document)
+        // Search user by email or CPF in the same tenant
         const targetUser = await db.user.findFirst({
             where: {
+                tenantId: tenantId || null,
                 OR: [
                     { email: emailOrCpf },
                     { document: emailOrCpf }
@@ -210,8 +232,11 @@ export async function unshareSpace(spaceId: string, userId: string) {
         const session = await auth();
         if (!session?.user?.id) return { success: false, error: "Unauthorized" };
 
+        // @ts-ignore
+        const tenantId = session.user.tenantId;
+
         const space = await db.space.findFirst({
-            where: { id: spaceId }
+            where: { id: spaceId, tenantId: tenantId || null }
         });
         if (!space) return { success: false, error: "Espaço não encontrado." };
 
@@ -324,10 +349,14 @@ export async function getList(id: string) {
         const session = await auth();
         if (!session?.user?.id) return { success: false, error: "Unauthorized" };
 
+        // @ts-ignore
+        const tenantId = session.user.tenantId;
+
         const list = await db.list.findFirst({
             where: {
                 id,
                 space: {
+                    tenantId: tenantId || null,
                     OR: [
                         { userId: session.user.id },
                         { shares: { some: { userId: session.user.id } } }

@@ -10,8 +10,12 @@ import { RoutineFrequency } from "@prisma/client";
 // ==========================================
 
 export async function verifyRoutineEditorRights(routineId: string, userId: string): Promise<boolean> {
-    const routine = await db.routine.findUnique({
-        where: { id: routineId }
+    const session = await auth();
+    // @ts-ignore
+    const tenantId = session?.user?.tenantId;
+
+    const routine = await db.routine.findFirst({
+        where: { id: routineId, tenantId: tenantId || null }
     });
     if (!routine) return false;
     if (routine.userId === userId) return true;
@@ -28,8 +32,12 @@ export async function verifyRoutineEditorRights(routineId: string, userId: strin
 }
 
 export async function verifyRoutineAccess(routineId: string, userId: string): Promise<boolean> {
-    const routine = await db.routine.findUnique({
-        where: { id: routineId }
+    const session = await auth();
+    // @ts-ignore
+    const tenantId = session?.user?.tenantId;
+
+    const routine = await db.routine.findFirst({
+        where: { id: routineId, tenantId: tenantId || null }
     });
     if (!routine) return false;
     if (routine.userId === userId) return true;
@@ -54,7 +62,11 @@ export async function getRoutines() {
         const session = await auth();
         if (!session?.user?.id) return { success: false, error: "Não autorizado" };
 
+        // @ts-ignore
+        const tenantId = session.user.tenantId;
+
         const whereClause: any = {
+            tenantId: tenantId || null,
             OR: [
                 { userId: session.user.id },
                 { shares: { some: { userId: session.user.id } } }
@@ -99,12 +111,16 @@ export async function createRoutine(data: {
         const session = await auth();
         if (!session?.user?.id) return { success: false, error: "Não autorizado" };
 
+        // @ts-ignore
+        const tenantId = session.user.tenantId;
+
         const routine = await db.routine.create({
             data: {
                 title: data.title,
                 role: data.role || null,
                 description: data.description || null,
-                userId: session.user.id
+                userId: session.user.id,
+                tenantId: tenantId || null
             }
         });
 
@@ -367,7 +383,11 @@ export async function getTodayRoutines(dateStr: string) {
 
         const checkDate = new Date(dateStr + "T12:00:00");
 
+        // @ts-ignore
+        const tenantId = session.user.tenantId;
+
         const whereClause: any = {
+            tenantId: tenantId || null,
             OR: [
                 { userId: session.user.id },
                 { shares: { some: { userId: session.user.id } } }
@@ -580,15 +600,19 @@ export async function shareRoutine(routineId: string, emailOrCpf: string, role: 
         const session = await auth();
         if (!session?.user?.id) return { success: false, error: "Não autorizado" };
 
+        // @ts-ignore
+        const tenantId = session.user.tenantId;
+
         // Ensure owner
         const routine = await db.routine.findFirst({
-            where: { id: routineId, userId: session.user.id }
+            where: { id: routineId, userId: session.user.id, tenantId: tenantId || null }
         });
         if (!routine) return { success: false, error: "Apenas o proprietário pode compartilhar o checklist." };
 
-        // Search user by email or CPF
+        // Search user by email or CPF in same tenant
         const targetUser = await db.user.findFirst({
             where: {
+                tenantId: tenantId || null,
                 OR: [
                     { email: emailOrCpf },
                     { document: emailOrCpf }
@@ -629,8 +653,11 @@ export async function unshareRoutine(routineId: string, userId: string) {
         const session = await auth();
         if (!session?.user?.id) return { success: false, error: "Não autorizado" };
 
+        // @ts-ignore
+        const tenantId = session.user.tenantId;
+
         const routine = await db.routine.findFirst({
-            where: { id: routineId }
+            where: { id: routineId, tenantId: tenantId || null }
         });
         if (!routine) return { success: false, error: "Checklist não encontrado." };
 

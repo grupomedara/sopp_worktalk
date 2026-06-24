@@ -109,7 +109,7 @@ const bottomNavItems = [
   { name: "Notas", href: "/notes", icon: StickyNote, activeText: "text-orange-400", borderBg: "bg-orange-500" },
 ];
 
-export function Sidebar() {
+export function Sidebar({ tenantName, logoUrl }: { tenantName?: string; logoUrl?: string | null }) {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
@@ -164,8 +164,8 @@ export function Sidebar() {
           )}
         >
           <div className="w-10 h-10 flex items-center justify-center shrink-0">
-            <img src="/logo-sopp.svg" alt="SOPP Logo" className={cn(
-              "w-8 h-8 text-primary group-hover/sidebar:w-10 group-hover/sidebar:h-10 transition-all duration-300",
+            <img src={logoUrl || "/logo-sopp.svg"} alt={`${tenantName || "SOPP"} Logo`} className={cn(
+              "w-8 h-8 object-contain transition-all duration-300",
               isSidebarExpanded && "w-10 h-10"
             )} />
           </div>
@@ -173,11 +173,11 @@ export function Sidebar() {
             "ml-4 opacity-0 group-hover/sidebar:opacity-100 transition-opacity whitespace-nowrap overflow-hidden flex flex-col items-start justify-center",
             isSidebarExpanded && "opacity-100"
           )}>
-            <h1 className="text-xl font-black tracking-tight text-foreground leading-none">
-              SOPP<span className="text-primary">.</span>
+            <h1 className="text-xl font-black tracking-tight text-foreground leading-none truncate max-w-[160px]">
+              {tenantName || "SOPP"}{!tenantName && <span className="text-primary">.</span>}
             </h1>
             <p className="text-[6px] font-bold text-muted-foreground tracking-widest mt-0.5 whitespace-nowrap">
-              Sistema Operacional de Performance Pessoal
+              {tenantName ? `Portal ${tenantName}` : "Sistema Operacional de Performance Pessoal"}
             </p>
           </div>
         </div>
