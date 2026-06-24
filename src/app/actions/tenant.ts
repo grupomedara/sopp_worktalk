@@ -240,7 +240,8 @@ export async function updateTenantBranding(primaryColor?: string, logoUrl?: stri
 export async function getGlobalSettings() {
     try {
         const session = await auth();
-        if (!session?.user?.id || session.user.role !== "ADMIN") {
+        // @ts-ignore
+        if (!session?.user?.id || (session.user.role !== "ADMIN" && session.user.role !== "SUPER_ADMIN")) {
             return { success: false, error: "Não autorizado: Acesso Admin necessário." };
         }
 
@@ -255,7 +256,8 @@ export async function getGlobalSettings() {
 export async function saveGlobalSettings(asaasToken: string, asaasEnvironment: string) {
     try {
         const session = await auth();
-        if (!session?.user?.id || session.user.role !== "ADMIN") {
+        // @ts-ignore
+        if (!session?.user?.id || (session.user.role !== "ADMIN" && session.user.role !== "SUPER_ADMIN")) {
             return { success: false, error: "Não autorizado: Acesso Admin necessário." };
         }
 
@@ -282,5 +284,86 @@ export async function saveGlobalSettings(asaasToken: string, asaasEnvironment: s
     } catch (error: any) {
         console.error("Error in saveGlobalSettings:", error);
         return { success: false, error: error.message || "Erro ao salvar configurações" };
+    }
+}
+
+export async function getTenants() {
+    try {
+        const session = await auth();
+        // @ts-ignore
+        if (!session?.user?.id || (session.user.role !== "ADMIN" && session.user.role !== "SUPER_ADMIN")) {
+            return { success: false, error: "Não autorizado: Acesso Admin necessário." };
+        }
+
+        const tenants = await db.tenant.findMany({
+            include: {
+                subscription: true,
+                _count: {
+                    select: { users: true }
+                }
+            },
+            orderBy: { name: "asc" }
+        });
+
+        return { success: true, data: tenants };
+    } catch (error: any) {
+        console.error("Error in getTenants:", error);
+        return { success: false, error: error.message || "Erro ao buscar empresas" };
+    }
+}
+
+export async function deleteTenant(id: string) {
+    try {
+        const session = await auth();
+        // @ts-ignore
+        if (!session?.user?.id || (session.user.role !== "ADMIN" && session.user.role !== "SUPER_ADMIN")) {
+            return { success: false, error: "Não autorizado: Acesso Admin necessário." };
+        }
+
+        await db.tenant.delete({
+            where: { id }
+        });
+
+        revalidatePath("/admin/tenants");
+        return { success: true };
+    } catch (error: any) {
+        console.error("Error in deleteTenant:", error);
+        return { success: false, error: error.message || "Erro ao excluir empresa" };
+    }
+}
+
+export async function updateTenantSubscription(
+    tenantId: string,
+    status: string,
+    plan: string,
+    currentPeriodEnd: Date | null
+) {
+    try {
+        const session = await auth();
+        // @ts-ignore
+        if (!session?.user?.id || (session.user.role !== "ADMIN" && session.user.role !== "SUPER_ADMIN")) {
+            return { success: false, error: "Não autorizado: Acesso Admin necessário." };
+        }
+
+        const sub = await db.subscription.upsert({
+            where: { tenantId },
+            update: {
+                status,
+                plan,
+                currentPeriodEnd
+            },
+            create: {
+                tenantId,
+                status,
+                plan,
+                currentPeriodEnd
+            }
+        });
+
+        revalidatePath("/admin/tenants");
+        return { success: true, data: sub };
+    } catch (error: any) {
+        console.error("Error in updateTenantSubscription:", error);
+        return { success: false, error: error.message || "Erro ao atualizar assinatura" };
     }
 }

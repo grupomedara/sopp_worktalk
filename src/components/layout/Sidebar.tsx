@@ -30,77 +30,6 @@ import { Sheet, SheetContent, SheetTrigger, SheetTitle, SheetHeader, SheetClose 
 import { NotificationToggle } from "@/components/ui/NotificationToggle";
 import { ManualDialog } from "./ManualDialog";
 
-const navigation = [
-  {
-    name: "Dashboard",
-    href: "/",
-    icon: LayoutDashboard,
-    theme: {
-      activeText: "text-primary",
-      activeBg: "bg-primary/10",
-      borderBg: "bg-primary",
-      hoverBg: "hover:bg-primary/5 hover:text-primary",
-      hoverIcon: "group-hover/item:text-primary",
-      mobBorder: "border-primary/20",
-    },
-  },
-  {
-    name: "Acomp. Processos",
-    href: "/processes",
-    icon: List,
-    theme: {
-      activeText: "text-blue-400",
-      activeBg: "bg-blue-500/10",
-      borderBg: "bg-blue-500",
-      hoverBg: "hover:bg-blue-500/5 hover:text-blue-400",
-      hoverIcon: "group-hover/item:text-blue-400",
-      mobBorder: "border-blue-500/20",
-    },
-  },
-  {
-    name: "Rotinas & SOPs",
-    href: "/routines",
-    icon: ClipboardList,
-    theme: {
-      activeText: "text-emerald-400",
-      activeBg: "bg-emerald-500/10",
-      borderBg: "bg-emerald-500",
-      hoverBg: "hover:bg-emerald-500/5 hover:text-emerald-400",
-      hoverIcon: "group-hover/item:text-emerald-400",
-      mobBorder: "border-emerald-500/20",
-    },
-  },
-  {
-    name: "Notas & Mapas",
-    href: "/notes",
-    icon: StickyNote,
-    theme: {
-      activeText: "text-orange-400",
-      activeBg: "bg-orange-500/10",
-      borderBg: "bg-orange-500",
-      hoverBg: "hover:bg-orange-500/5 hover:text-orange-400",
-      hoverIcon: "group-hover/item:text-orange-400",
-      mobBorder: "border-orange-500/20",
-    },
-  },
-  {
-    name: "Sistema",
-    icon: UserCircle,
-    theme: {
-      activeText: "text-primary",
-      activeBg: "bg-primary/10",
-      borderBg: "bg-primary",
-      hoverBg: "hover:bg-primary/5 hover:text-primary",
-      hoverIcon: "group-hover/item:text-primary",
-      mobBorder: "border-primary/20",
-    },
-    children: [
-      { name: "Perfil", href: "/profile", icon: UserCircle },
-      { name: "Admin", href: "/admin/users", icon: ShieldAlert },
-    ],
-  },
-];
-
 // Items displayed in the mobile bottom navigation (most important ones)
 const bottomNavItems = [
   { name: "Dashboard", href: "/", icon: LayoutDashboard, activeText: "text-primary", borderBg: "bg-primary" },
@@ -109,7 +38,83 @@ const bottomNavItems = [
   { name: "Notas", href: "/notes", icon: StickyNote, activeText: "text-orange-400", borderBg: "bg-orange-500" },
 ];
 
-export function Sidebar({ tenantName, logoUrl }: { tenantName?: string; logoUrl?: string | null }) {
+export function Sidebar({ tenantName, logoUrl, userRole }: { tenantName?: string; logoUrl?: string | null; userRole?: string }) {
+  const isAdmin = userRole === "SUPER_ADMIN" || userRole === "ADMIN";
+
+  const navigation = [
+    {
+      name: "Dashboard",
+      href: "/",
+      icon: LayoutDashboard,
+      theme: {
+        activeText: "text-primary",
+        activeBg: "bg-primary/10",
+        borderBg: "bg-primary",
+        hoverBg: "hover:bg-primary/5 hover:text-primary",
+        hoverIcon: "group-hover/item:text-primary",
+        mobBorder: "border-primary/20",
+      },
+    },
+    {
+      name: "Acomp. Processos",
+      href: "/processes",
+      icon: List,
+      theme: {
+        activeText: "text-blue-400",
+        activeBg: "bg-blue-500/10",
+        borderBg: "bg-blue-500",
+        hoverBg: "hover:bg-blue-500/5 hover:text-blue-400",
+        hoverIcon: "group-hover/item:text-blue-400",
+        mobBorder: "border-blue-500/20",
+      },
+    },
+    {
+      name: "Rotinas & SOPs",
+      href: "/routines",
+      icon: ClipboardList,
+      theme: {
+        activeText: "text-emerald-400",
+        activeBg: "bg-emerald-500/10",
+        borderBg: "bg-emerald-500",
+        hoverBg: "hover:bg-emerald-500/5 hover:text-emerald-400",
+        hoverIcon: "group-hover/item:text-emerald-400",
+        mobBorder: "border-emerald-500/20",
+      },
+    },
+    {
+      name: "Notas & Mapas",
+      href: "/notes",
+      icon: StickyNote,
+      theme: {
+        activeText: "text-orange-400",
+        activeBg: "bg-orange-500/10",
+        borderBg: "bg-orange-500",
+        hoverBg: "hover:bg-orange-500/5 hover:text-orange-400",
+        hoverIcon: "group-hover/item:text-orange-400",
+        mobBorder: "border-orange-500/20",
+      },
+    },
+    {
+      name: "Sistema",
+      icon: UserCircle,
+      theme: {
+        activeText: "text-primary",
+        activeBg: "bg-primary/10",
+        borderBg: "bg-primary",
+        hoverBg: "hover:bg-primary/5 hover:text-primary",
+        hoverIcon: "group-hover/item:text-primary",
+        mobBorder: "border-primary/20",
+      },
+      children: [
+        { name: "Perfil", href: "/profile", icon: UserCircle },
+        ...(isAdmin ? [
+          { name: "Usuários", href: "/admin/users", icon: ShieldAlert },
+          { name: "Empresas", href: "/admin/tenants", icon: ShieldAlert },
+          { name: "Asaas", href: "/admin/settings", icon: ShieldAlert },
+        ] : []),
+      ],
+    },
+  ];
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
