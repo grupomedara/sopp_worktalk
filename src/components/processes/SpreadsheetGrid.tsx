@@ -757,7 +757,7 @@ export function SpreadsheetGrid({ list, currentUserId }: SpreadsheetGridProps) {
                     <div className="flex items-center gap-2 mt-1">
                         <h3 className="text-xl font-bold uppercase tracking-tight text-white">{list.name}</h3>
                         {list.isTemplate && (
-                            <Badge className="bg-primary/20 text-primary border-primary/30 uppercase tracking-widest font-black text-[8px] h-4">
+                            <Badge className="bg-blue-500/20 text-blue-400 border-blue-500/30 uppercase tracking-widest font-black text-[8px] h-4">
                                 Modelo Procedimento
                             </Badge>
                         )}
@@ -811,10 +811,10 @@ export function SpreadsheetGrid({ list, currentUserId }: SpreadsheetGridProps) {
                         key={tab.id}
                         onClick={() => setActiveView(tab.id as "spreadsheet" | "kanban" | "gantt")}
                         className={cn(
-                            "flex items-center gap-2 px-4 py-2 border-b-2 font-bold uppercase text-[9px] tracking-widest transition-all",
+                            "flex items-center gap-2 px-4 py-2 border-b-2 font-bold uppercase text-[9px] tracking-widest transition-all cursor-pointer",
                             activeView === tab.id
-                                ? "border-white text-white bg-white/5 rounded-t-lg"
-                                : "border-transparent text-zinc-500 hover:text-zinc-300 hover:bg-zinc-900/30 rounded-t-lg"
+                                ? "border-blue-500 text-blue-400 bg-blue-500/10 rounded-t-lg"
+                                : "border-transparent text-zinc-500 hover:text-blue-300 hover:bg-blue-900/5 rounded-t-lg"
                         )}
                     >
                         <tab.icon className="w-3.5 h-3.5" />
@@ -848,7 +848,7 @@ export function SpreadsheetGrid({ list, currentUserId }: SpreadsheetGridProps) {
                             </div>
 
                             {/* Table Container Card */}
-                            <div className="w-full border border-zinc-800/80 rounded-2xl bg-zinc-950/65 backdrop-blur-xl overflow-x-auto shadow-[0_20px_45px_rgba(0,0,0,0.85)] p-0.5 border-zinc-800/50">
+                            <div className="w-full glow-card-processos rounded-2xl bg-zinc-950/65 backdrop-blur-xl overflow-x-auto shadow-[0_20px_45px_rgba(0,0,0,0.85)] p-0.5">
                                 <table className="w-full border-collapse text-left text-xs min-w-[950px] overflow-hidden rounded-xl">
                                     <thead>
                                         <tr className="border-b border-zinc-800/80 bg-zinc-900/85 backdrop-blur-md text-zinc-300 font-black tracking-widest text-[9px] h-11 select-none uppercase">

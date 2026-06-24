@@ -56,9 +56,9 @@
     --popover: 0 0% 5%;
     --popover-foreground: 0 0% 100%;
 
-    /* Primary: Pure White (The Noir Signature) */
-    --primary: 0 0% 100%;
-    --primary-foreground: 0 0% 0%;
+    /* Primary: Electric Cobalt (The Noir Signature) */
+    --primary: 217 91% 60%;
+    --primary-foreground: 0 0% 100%;
 
     /* Secondary: Muted Tones */
     --secondary: 0 0% 12%;
@@ -101,20 +101,20 @@
     /* Sidebar */
     --sidebar-background: 0 0% 0%;
     --sidebar-foreground: 0 0% 100% / 0.7;
-    --sidebar-primary: 0 0% 100%;
-    --sidebar-primary-foreground: 0 0% 0%;
-    --sidebar-accent: 0 0% 100% / 0.05;
-    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-primary: 217 91% 60%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 217 91% 60% / 0.08;
+    --sidebar-accent-foreground: 217 91% 60%;
     --sidebar-border: 0 0% 100% / 0.05;
-    --sidebar-ring: 0 0% 100%;
+    --sidebar-ring: 217 91% 60%;
   }
 
   body {
     @apply bg-background text-foreground antialiased;
     background-image:
-      radial-gradient(at 0% 0%, rgba(255, 255, 255, 0.03) 0px, transparent 50%),
-      radial-gradient(at 100% 0%, rgba(255, 255, 255, 0.02) 0px, transparent 50%);
-    /* NOTE: background-attachment: fixed removed — breaks iOS Safari (causes white flash on scroll) */
+      radial-gradient(at 0% 0%, hsla(217, 91%, 60%, 0.04) 0px, transparent 50%),
+      radial-gradient(at 100% 0%, hsla(150, 80%, 45%, 0.03) 0px, transparent 50%),
+      radial-gradient(at 50% 100%, hsla(24, 100%, 50%, 0.03) 0px, transparent 50%);
     /* Safe area insets for devices with notch / home indicator */
     padding-top: env(safe-area-inset-top);
     padding-bottom: env(safe-area-inset-bottom);
@@ -123,11 +123,25 @@
   }
 
   ::selection {
-    @apply bg-white text-black;
+    @apply bg-primary text-primary-foreground;
   }
 }
 
 @layer components {
+
+  /* GLOW CARDS */
+  .glow-card-processos {
+    @apply border border-white/5 transition-all duration-300 hover:border-blue-500/30 hover:shadow-[0_0_30px_rgba(59,130,246,0.06)];
+  }
+  .glow-card-rotinas {
+    @apply border border-white/5 transition-all duration-300 hover:border-emerald-500/30 hover:shadow-[0_0_30px_rgba(16,185,129,0.06)];
+  }
+  .glow-card-notas {
+    @apply border border-white/5 transition-all duration-300 hover:border-orange-500/30 hover:shadow-[0_0_30px_rgba(249,115,22,0.06)];
+  }
+  .glow-card-primary {
+    @apply border border-white/5 transition-all duration-300 hover:border-blue-500/30 hover:shadow-[0_0_30px_rgba(59,130,246,0.06)];
+  }
 
   /* NOIR GLASSMORPHISM */
   .glass-panel {

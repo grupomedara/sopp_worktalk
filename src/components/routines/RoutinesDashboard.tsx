@@ -432,7 +432,7 @@ export function RoutinesDashboard({ currentUserId }: RoutinesDashboardProps) {
                 <div className="flex items-center gap-3">
                     <button 
                         onClick={openCreateRoutine}
-                        className="bg-primary hover:bg-primary/90 text-zinc-950 font-bold uppercase tracking-wider text-[10px] px-5 py-3 rounded-lg shadow-lg flex items-center gap-2 border border-primary/20 shrink-0 transition-transform active:scale-95"
+                        className="bg-emerald-500 hover:bg-emerald-600 text-zinc-950 font-bold uppercase tracking-wider text-[10px] px-5 py-3 rounded-lg shadow-lg flex items-center gap-2 border border-emerald-500/20 shrink-0 transition-transform active:scale-95 cursor-pointer"
                     >
                         <Plus className="w-3.5 h-3.5 stroke-[3]" /> Novo Checklist
                     </button>
@@ -450,7 +450,7 @@ export function RoutinesDashboard({ currentUserId }: RoutinesDashboardProps) {
                         ◀
                     </button>
                     <div className="flex items-center gap-2.5">
-                        <Calendar className="w-4 h-4 text-primary" />
+                        <Calendar className="w-4 h-4 text-emerald-400" />
                         <span className="text-sm font-black uppercase tracking-wider text-zinc-100">
                             {format(parsedDate, "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
                         </span>
@@ -475,7 +475,7 @@ export function RoutinesDashboard({ currentUserId }: RoutinesDashboardProps) {
                         placeholder="Buscar checklists ou funções..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="w-full bg-zinc-900/60 border border-zinc-800/80 text-white rounded-lg pl-3 pr-10 py-2.5 text-xs font-semibold uppercase tracking-wider focus:outline-none focus:border-primary/50 transition-colors placeholder:text-zinc-650"
+                        className="w-full bg-zinc-900/60 border border-zinc-800/80 text-white rounded-lg pl-3 pr-10 py-2.5 text-xs font-semibold uppercase tracking-wider focus:outline-none focus:border-emerald-500/50 transition-colors placeholder:text-zinc-650"
                     />
                 </div>
 
@@ -523,7 +523,7 @@ export function RoutinesDashboard({ currentUserId }: RoutinesDashboardProps) {
                         const isViewer = !isOwner && userShare?.role === "VIEWER";
 
                         return (
-                            <Card key={routine.id} className="bg-zinc-950/40 border-zinc-800/80 rounded-xl overflow-hidden backdrop-blur-md transition-all shadow-2xl">
+                            <Card key={routine.id} className="bg-zinc-950/40 glow-card-rotinas rounded-xl overflow-hidden backdrop-blur-md transition-all shadow-2xl">
                                 <div className="p-5 flex flex-col md:flex-row md:items-center justify-between border-b border-zinc-900 gap-4">
                                     <div className="space-y-1.5 min-w-0 flex-1">
                                         <div className="flex flex-wrap items-center gap-2">
@@ -582,7 +582,7 @@ export function RoutinesDashboard({ currentUserId }: RoutinesDashboardProps) {
                                                         setShareModalOpen(true);
                                                     }}
                                                     title="Compartilhar"
-                                                    className="p-2.5 border border-zinc-800 text-zinc-400 hover:text-primary hover:bg-zinc-900 rounded-lg transition-all"
+                                                    className="p-2.5 border border-zinc-800 text-zinc-400 hover:text-emerald-400 hover:bg-zinc-900 rounded-lg transition-all cursor-pointer"
                                                 >
                                                     <Share2 className="w-4 h-4" />
                                                 </button>
@@ -594,7 +594,7 @@ export function RoutinesDashboard({ currentUserId }: RoutinesDashboardProps) {
                                                         setIsStepDialogOpen(true);
                                                     }}
                                                     title="Adicionar Passo"
-                                                    className="p-2.5 border border-zinc-800 text-zinc-400 hover:text-primary hover:bg-zinc-900 rounded-lg transition-all"
+                                                    className="p-2.5 border border-zinc-800 text-zinc-400 hover:text-emerald-400 hover:bg-zinc-900 rounded-lg transition-all cursor-pointer"
                                                 >
                                                     <PlusCircle className="w-4 h-4" />
                                                 </button>
@@ -603,7 +603,7 @@ export function RoutinesDashboard({ currentUserId }: RoutinesDashboardProps) {
                                                 <button 
                                                     onClick={() => openEditRoutine(routine)}
                                                     title="Editar"
-                                                    className="p-2.5 border border-zinc-800 text-zinc-400 hover:text-amber-400 hover:bg-zinc-900 rounded-lg transition-all"
+                                                    className="p-2.5 border border-zinc-800 text-zinc-400 hover:text-amber-400 hover:bg-zinc-900 rounded-lg transition-all cursor-pointer"
                                                 >
                                                     <Edit className="w-4 h-4" />
                                                 </button>
@@ -612,7 +612,7 @@ export function RoutinesDashboard({ currentUserId }: RoutinesDashboardProps) {
                                                 <button 
                                                     onClick={() => handleDeleteRoutine(routine.id)}
                                                     title="Deletar"
-                                                    className="p-2.5 border border-zinc-800 text-zinc-400 hover:text-red-500 hover:bg-zinc-900 rounded-lg transition-all"
+                                                    className="p-2.5 border border-zinc-800 text-zinc-400 hover:text-red-500 hover:bg-zinc-900 rounded-lg transition-all cursor-pointer"
                                                 >
                                                     <Trash2 className="w-4 h-4" />
                                                 </button>
@@ -622,7 +622,7 @@ export function RoutinesDashboard({ currentUserId }: RoutinesDashboardProps) {
                                                     ...prev,
                                                     [routine.id]: !isExpanded
                                                 }))}
-                                                className="p-2.5 border border-zinc-800 text-zinc-400 hover:text-white hover:bg-zinc-900 rounded-lg transition-all ml-1"
+                                                className="p-2.5 border border-zinc-800 text-zinc-400 hover:text-white hover:bg-zinc-900 rounded-lg transition-all ml-1 cursor-pointer"
                                             >
                                                 {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
                                             </button>
@@ -761,7 +761,7 @@ export function RoutinesDashboard({ currentUserId }: RoutinesDashboardProps) {
                                                             setEditingNotesRoutineId(routine.id);
                                                             setRoutineNotesTemp(routine.notes || "");
                                                         }}
-                                                        className="text-[9px] font-black uppercase tracking-wider text-primary hover:underline"
+                                                        className="text-[9px] font-black uppercase tracking-wider text-emerald-400 hover:underline cursor-pointer"
                                                     >
                                                         {routine.notes ? "Editar Notas" : "+ Adicionar Nota"}
                                                     </button>
@@ -788,7 +788,7 @@ export function RoutinesDashboard({ currentUserId }: RoutinesDashboardProps) {
                                                     value={routineNotesTemp}
                                                     onChange={(e) => setRoutineNotesTemp(e.target.value)}
                                                     placeholder="Digite as observações sobre a execução deste checklist neste dia específico..."
-                                                    className="w-full bg-zinc-900 border-zinc-800 text-white text-xs py-2 px-3 focus:border-primary/50"
+                                                    className="w-full bg-zinc-900 border-zinc-800 text-white text-xs py-2 px-3 focus:border-emerald-500/50"
                                                     rows={2}
                                                 />
                                             ) : (
@@ -813,7 +813,7 @@ export function RoutinesDashboard({ currentUserId }: RoutinesDashboardProps) {
                 <DialogContent className="bg-zinc-950 border border-zinc-800 max-w-lg rounded-2xl shadow-2xl p-6 outline-none">
                     <DialogHeader>
                         <DialogTitle className="text-white text-sm font-black uppercase tracking-widest flex items-center gap-2">
-                            <ClipboardList className="w-5 h-5 text-primary" /> {editingRoutine ? "Editar Checklist" : "Novo Checklist por Pessoa/Função"}
+                            <ClipboardList className="w-5 h-5 text-emerald-400" /> {editingRoutine ? "Editar Checklist" : "Novo Checklist por Pessoa/Função"}
                         </DialogTitle>
                         <DialogDescription className="text-zinc-500 text-xs font-semibold uppercase tracking-wider">
                             Defina o identificador do checklist e o cargo ou colaborador associado para auditorias rápidas.
@@ -828,7 +828,7 @@ export function RoutinesDashboard({ currentUserId }: RoutinesDashboardProps) {
                                 value={routineTitle}
                                 onChange={(e) => setRoutineTitle(e.target.value)}
                                 placeholder="Ex: Checklist do João, Rotina de Vendas"
-                                className="bg-zinc-900 border-zinc-800 text-white placeholder:text-zinc-650 focus:border-primary/40 focus:ring-0 text-xs py-5.5 font-bold uppercase tracking-wider"
+                                className="bg-zinc-900 border-zinc-800 text-white placeholder:text-zinc-650 focus:border-emerald-500/40 focus:ring-0 text-xs py-5.5 font-bold uppercase tracking-wider"
                             />
                         </div>
 
@@ -839,7 +839,7 @@ export function RoutinesDashboard({ currentUserId }: RoutinesDashboardProps) {
                                 value={routineRole}
                                 onChange={(e) => setRoutineRole(e.target.value)}
                                 placeholder="Ex: Vendedor, Supervisor de TI, Suporte"
-                                className="bg-zinc-900 border-zinc-800 text-white placeholder:text-zinc-650 focus:border-primary/40 focus:ring-0 text-xs py-5 font-bold uppercase tracking-wider"
+                                className="bg-zinc-900 border-zinc-800 text-white placeholder:text-zinc-650 focus:border-emerald-500/40 focus:ring-0 text-xs py-5 font-bold uppercase tracking-wider"
                             />
                         </div>
 
@@ -850,7 +850,7 @@ export function RoutinesDashboard({ currentUserId }: RoutinesDashboardProps) {
                                 value={routineDescription}
                                 onChange={(e) => setRoutineDescription(e.target.value)}
                                 placeholder="Descreva brevemente a finalidade deste agrupador de rotinas..."
-                                className="bg-zinc-900 border-zinc-800 text-white placeholder:text-zinc-650 focus:border-primary/40 focus:ring-0 text-xs"
+                                className="bg-zinc-900 border-zinc-800 text-white placeholder:text-zinc-650 focus:border-emerald-500/40 focus:ring-0 text-xs"
                                 rows={2}
                             />
                         </div>
@@ -882,7 +882,7 @@ export function RoutinesDashboard({ currentUserId }: RoutinesDashboardProps) {
                 <DialogContent className="bg-zinc-950 border border-zinc-800 max-w-lg rounded-2xl shadow-2xl p-6 outline-none">
                     <DialogHeader>
                         <DialogTitle className="text-white text-sm font-black uppercase tracking-widest flex items-center gap-2">
-                            <PlusCircle className="w-5 h-5 text-primary" /> Adicionar Tarefa Cíclica ao Checklist
+                            <PlusCircle className="w-5 h-5 text-emerald-400" /> Adicionar Tarefa Cíclica ao Checklist
                         </DialogTitle>
                         <DialogDescription className="text-zinc-500 text-xs font-semibold uppercase tracking-wider">
                             Insira uma tarefa configurando sua recorrência específica.
@@ -897,7 +897,7 @@ export function RoutinesDashboard({ currentUserId }: RoutinesDashboardProps) {
                                 value={stepTitle}
                                 onChange={(e) => setStepTitle(e.target.value)}
                                 placeholder="Ex: Verificar chaves de segurança, Backup semanal"
-                                className="bg-zinc-900 border-zinc-800 text-white placeholder:text-zinc-650 focus:border-primary/40 focus:ring-0 text-xs py-5 font-bold uppercase tracking-wider"
+                                className="bg-zinc-900 border-zinc-800 text-white placeholder:text-zinc-650 focus:border-emerald-500/40 focus:ring-0 text-xs py-5 font-bold uppercase tracking-wider"
                             />
                         </div>
 
@@ -908,7 +908,7 @@ export function RoutinesDashboard({ currentUserId }: RoutinesDashboardProps) {
                                 value={stepDescription}
                                 onChange={(e) => setStepDescription(e.target.value)}
                                 placeholder="Detalhes ou passos de como executar essa tarefa..."
-                                className="bg-zinc-900 border-zinc-800 text-white placeholder:text-zinc-650 focus:border-primary/40 focus:ring-0 text-xs"
+                                className="bg-zinc-900 border-zinc-800 text-white placeholder:text-zinc-650 focus:border-emerald-500/40 focus:ring-0 text-xs"
                                 rows={2}
                             />
                         </div>
@@ -921,7 +921,7 @@ export function RoutinesDashboard({ currentUserId }: RoutinesDashboardProps) {
                                 value={stepTime}
                                 onChange={(e) => setStepTime(e.target.value)}
                                 placeholder="Ex: 08:30, 18:00"
-                                className="bg-zinc-900 border-zinc-800 text-white placeholder:text-zinc-650 focus:border-primary/40 focus:ring-0 text-xs py-5"
+                                className="bg-zinc-900 border-zinc-800 text-white placeholder:text-zinc-650 focus:border-emerald-500/40 focus:ring-0 text-xs py-5"
                             />
                         </div>
 
@@ -931,7 +931,7 @@ export function RoutinesDashboard({ currentUserId }: RoutinesDashboardProps) {
                             <select
                                 value={stepFrequency}
                                 onChange={(e) => setStepFrequency(e.target.value)}
-                                className="w-full bg-zinc-900 border border-zinc-800 text-zinc-300 rounded-lg px-3 py-2.5 text-xs font-black uppercase tracking-wider focus:outline-none focus:border-primary/40"
+                                className="w-full bg-zinc-900 border border-zinc-800 text-zinc-300 rounded-lg px-3 py-2.5 text-xs font-black uppercase tracking-wider focus:outline-none focus:border-emerald-500/40"
                             >
                                 <option value="DAILY">DIÁRIA (TODO DIA OU DIAS DA SEMANA)</option>
                                 <option value="WEEKLY">SEMANAL (UMA VEZ POR SEMANA)</option>
@@ -967,7 +967,7 @@ export function RoutinesDashboard({ currentUserId }: RoutinesDashboardProps) {
                                                 className={cn(
                                                     "px-3 py-1.5 rounded text-[10px] font-black uppercase tracking-wider border transition-all",
                                                     isSelected 
-                                                        ? "bg-primary text-zinc-950 border-primary" 
+                                                        ? "bg-emerald-500 text-zinc-950 border-emerald-500" 
                                                         : "bg-zinc-900 text-zinc-500 border-zinc-800 hover:text-zinc-300"
                                                 )}
                                             >
@@ -986,7 +986,7 @@ export function RoutinesDashboard({ currentUserId }: RoutinesDashboardProps) {
                                     value={monthlyDays}
                                     onChange={(e) => setMonthlyDays(e.target.value)}
                                     placeholder="Ex: 10, 20, 30"
-                                    className="bg-zinc-900 border-zinc-800 text-white placeholder:text-zinc-650 focus:border-primary/40 text-xs py-5"
+                                    className="bg-zinc-900 border-zinc-800 text-white placeholder:text-zinc-650 focus:border-emerald-500/40 text-xs py-5"
                                 />
                                 <p className="text-[9px] text-zinc-500 font-bold uppercase">Deixe em branco para rodar no mesmo dia da criação da tarefa.</p>
                             </div>
@@ -999,7 +999,7 @@ export function RoutinesDashboard({ currentUserId }: RoutinesDashboardProps) {
                                     value={monthlyDays}
                                     onChange={(e) => setMonthlyDays(e.target.value)}
                                     placeholder="Ex: 2026-06-15, 2026-07-20"
-                                    className="bg-zinc-900 border-zinc-800 text-white placeholder:text-zinc-650 focus:border-primary/40 text-xs py-5"
+                                    className="bg-zinc-900 border-zinc-800 text-white placeholder:text-zinc-650 focus:border-emerald-500/40 text-xs py-5"
                                 />
                             </div>
                         )}
@@ -1049,7 +1049,7 @@ export function RoutinesDashboard({ currentUserId }: RoutinesDashboardProps) {
                 <DialogContent className="bg-zinc-950 border border-zinc-800 text-zinc-300 max-w-lg rounded-2xl shadow-2xl p-6 outline-none">
                     <DialogHeader>
                         <DialogTitle className="text-white text-sm font-black uppercase tracking-widest flex items-center gap-2">
-                            <Share2 className="w-4 h-4 text-primary" />
+                            <Share2 className="w-4 h-4 text-emerald-400" />
                             Compartilhar Checklist
                         </DialogTitle>
                         <DialogDescription className="text-zinc-500 text-xs font-semibold uppercase tracking-wider">
@@ -1101,8 +1101,8 @@ export function RoutinesDashboard({ currentUserId }: RoutinesDashboardProps) {
                                         {activeRoutine.shares.map((share: any) => (
                                             <div key={share.id} className="flex items-center justify-between p-2 bg-zinc-900/40 rounded border border-zinc-900">
                                                 <div className="flex items-center gap-2 truncate">
-                                                    <div className="w-6 h-6 rounded bg-primary/20 text-primary flex items-center justify-center shrink-0">
-                                                        <Users className="w-3 h-3 text-primary" />
+                                                    <div className="w-6 h-6 rounded bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0">
+                                                        <Users className="w-3 h-3 text-emerald-400" />
                                                     </div>
                                                     <div className="truncate">
                                                         <p className="text-xs font-bold text-white truncate">{share.user?.name}</p>

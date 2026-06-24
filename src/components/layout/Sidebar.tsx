@@ -31,13 +31,69 @@ import { NotificationToggle } from "@/components/ui/NotificationToggle";
 import { ManualDialog } from "./ManualDialog";
 
 const navigation = [
-  { name: "Dashboard", href: "/", icon: LayoutDashboard },
-  { name: "Acomp. Processos", href: "/processes", icon: List },
-  { name: "Rotinas & SOPs", href: "/routines", icon: ClipboardList },
-  { name: "Notas & Mapas", href: "/notes", icon: StickyNote },
+  {
+    name: "Dashboard",
+    href: "/",
+    icon: LayoutDashboard,
+    theme: {
+      activeText: "text-primary",
+      activeBg: "bg-primary/10",
+      borderBg: "bg-primary",
+      hoverBg: "hover:bg-primary/5 hover:text-primary",
+      hoverIcon: "group-hover/item:text-primary",
+      mobBorder: "border-primary/20",
+    },
+  },
+  {
+    name: "Acomp. Processos",
+    href: "/processes",
+    icon: List,
+    theme: {
+      activeText: "text-blue-400",
+      activeBg: "bg-blue-500/10",
+      borderBg: "bg-blue-500",
+      hoverBg: "hover:bg-blue-500/5 hover:text-blue-400",
+      hoverIcon: "group-hover/item:text-blue-400",
+      mobBorder: "border-blue-500/20",
+    },
+  },
+  {
+    name: "Rotinas & SOPs",
+    href: "/routines",
+    icon: ClipboardList,
+    theme: {
+      activeText: "text-emerald-400",
+      activeBg: "bg-emerald-500/10",
+      borderBg: "bg-emerald-500",
+      hoverBg: "hover:bg-emerald-500/5 hover:text-emerald-400",
+      hoverIcon: "group-hover/item:text-emerald-400",
+      mobBorder: "border-emerald-500/20",
+    },
+  },
+  {
+    name: "Notas & Mapas",
+    href: "/notes",
+    icon: StickyNote,
+    theme: {
+      activeText: "text-orange-400",
+      activeBg: "bg-orange-500/10",
+      borderBg: "bg-orange-500",
+      hoverBg: "hover:bg-orange-500/5 hover:text-orange-400",
+      hoverIcon: "group-hover/item:text-orange-400",
+      mobBorder: "border-orange-500/20",
+    },
+  },
   {
     name: "Sistema",
     icon: UserCircle,
+    theme: {
+      activeText: "text-primary",
+      activeBg: "bg-primary/10",
+      borderBg: "bg-primary",
+      hoverBg: "hover:bg-primary/5 hover:text-primary",
+      hoverIcon: "group-hover/item:text-primary",
+      mobBorder: "border-primary/20",
+    },
     children: [
       { name: "Perfil", href: "/profile", icon: UserCircle },
       { name: "Admin", href: "/admin/users", icon: ShieldAlert },
@@ -47,10 +103,10 @@ const navigation = [
 
 // Items displayed in the mobile bottom navigation (most important ones)
 const bottomNavItems = [
-  { name: "Dashboard", href: "/", icon: LayoutDashboard },
-  { name: "Processos", href: "/processes", icon: List },
-  { name: "Rotinas", href: "/routines", icon: ClipboardList },
-  { name: "Notas", href: "/notes", icon: StickyNote },
+  { name: "Dashboard", href: "/", icon: LayoutDashboard, activeText: "text-primary", borderBg: "bg-primary" },
+  { name: "Processos", href: "/processes", icon: List, activeText: "text-blue-400", borderBg: "bg-blue-500" },
+  { name: "Rotinas", href: "/routines", icon: ClipboardList, activeText: "text-emerald-400", borderBg: "bg-emerald-500" },
+  { name: "Notas", href: "/notes", icon: StickyNote, activeText: "text-orange-400", borderBg: "bg-orange-500" },
 ];
 
 export function Sidebar() {
@@ -141,8 +197,8 @@ export function Sidebar() {
                   <button
                     onClick={() => toggleGroup(item.name)}
                     className={cn(
-                      "flex items-center w-full h-12 rounded-none transition-all relative overflow-hidden group/item",
-                      isChildActive ? "text-primary" : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
+                      "flex items-center w-full h-12 rounded-none transition-all relative overflow-hidden group/item cursor-pointer",
+                      isChildActive ? item.theme.activeText : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
                     )}
                   >
                     <div className="min-w-[56px] flex items-center justify-center">
@@ -169,7 +225,7 @@ export function Sidebar() {
                           onClick={() => setIsSidebarExpanded(false)}
                           className={cn(
                             "flex items-center h-9 text-xs font-semibold tracking-wider uppercase transition-all",
-                            isSubActive ? "text-primary" : "text-zinc-500 hover:text-foreground hover:pl-1"
+                            isSubActive ? item.theme.activeText : "text-zinc-500 hover:text-foreground hover:pl-1"
                           )}
                         >
                           {child.name}
@@ -189,22 +245,22 @@ export function Sidebar() {
                 href={item.href as string}
                 onClick={() => setIsSidebarExpanded(false)}
                 className={cn(
-                  "flex items-center h-12 rounded-none transition-all relative overflow-hidden group/item",
+                  "flex items-center h-12 rounded-none transition-all duration-300 relative overflow-hidden group/item",
                   isActive
-                    ? "bg-muted text-foreground"
-                    : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
+                    ? `${item.theme.activeBg} ${item.theme.activeText}`
+                    : `text-muted-foreground ${item.theme.hoverBg}`
                 )}
               >
                 <div className={cn(
                   "w-1 absolute left-0 h-full transition-transform duration-300",
-                  isActive ? "bg-primary scale-y-100" : "bg-primary scale-y-0 group-hover/item:scale-y-50"
+                  isActive ? `${item.theme.borderBg} scale-y-100` : `${item.theme.borderBg} scale-y-0 group-hover/item:scale-y-50`
                 )} />
 
                 <div className="min-w-[56px] flex items-center justify-center">
                   <item.icon
                     className={cn(
-                      "h-5 w-5 transition-transform group-hover/item:scale-110",
-                      isActive ? "text-primary" : "text-current"
+                      "h-5 w-5 transition-all duration-300",
+                      isActive ? item.theme.activeText : `text-current ${item.theme.hoverIcon}`
                     )}
                   />
                 </div>
@@ -221,7 +277,7 @@ export function Sidebar() {
 
           <button
             onClick={() => setIsManualOpen(true)}
-            className="flex items-center w-full h-12 rounded-none transition-all relative overflow-hidden group/manual text-muted-foreground hover:bg-primary/10 hover:text-primary"
+            className="flex items-center w-full h-12 rounded-none transition-all duration-300 relative overflow-hidden group/manual text-muted-foreground hover:bg-primary/10 hover:text-primary cursor-pointer"
           >
             <div className="w-1 absolute left-0 h-full transition-transform duration-300 bg-primary scale-y-0 group-hover/manual:rotate-12 group-hover/manual:scale-y-100" />
             <div className="min-w-[56px] flex items-center justify-center">
@@ -230,14 +286,14 @@ export function Sidebar() {
             <span className={cn(
               "ml-0 opacity-0 group-hover/sidebar:opacity-100 group-hover/sidebar:ml-2 transition-all duration-300 whitespace-nowrap font-black text-[10px] uppercase tracking-widest",
               isSidebarExpanded && "opacity-100 ml-2"
-            )}>
+                )}>
               Manual
             </span>
           </button>
 
           <button
             onClick={() => signOut({ callbackUrl: "/login" })}
-            className="flex items-center w-full h-12 rounded-none transition-all relative overflow-hidden group/logout text-muted-foreground hover:bg-red-500/10 hover:text-red-500"
+            className="flex items-center w-full h-12 rounded-none transition-all duration-300 relative overflow-hidden group/logout text-muted-foreground hover:bg-red-500/10 hover:text-red-500 cursor-pointer"
           >
             <div className="w-1 absolute left-0 h-full transition-transform duration-300 bg-red-500 scale-y-0 group-hover/logout:scale-y-100" />
             <div className="min-w-[56px] flex items-center justify-center">
@@ -286,14 +342,14 @@ export function Sidebar() {
               key={item.name}
               href={item.href}
               className={cn(
-                "flex flex-col items-center justify-center h-16 w-full gap-1 transition-all",
-                isActive ? "text-foreground" : "text-muted-foreground"
+                "flex flex-col items-center justify-center h-16 w-full gap-1 transition-all relative",
+                isActive ? item.activeText : "text-muted-foreground"
               )}
             >
               <item.icon
                 className={cn(
-                  "h-5 w-5 transition-all",
-                  isActive ? "text-primary scale-110" : "text-current"
+                  "h-5 w-5 transition-all duration-300",
+                  isActive ? "scale-110" : "text-current"
                 )}
               />
               <span className={cn(
@@ -303,7 +359,7 @@ export function Sidebar() {
                 {item.name}
               </span>
               {isActive && (
-                <span className="absolute top-0 left-1/2 -translate-x-1/2 w-6 h-0.5 bg-primary rounded-full" />
+                <span className={cn("absolute top-0 left-1/2 -translate-x-1/2 w-6 h-0.5 rounded-full", item.borderBg)} />
               )}
             </Link>
           );
@@ -311,7 +367,7 @@ export function Sidebar() {
         <Sheet open={isOpen} onOpenChange={setIsOpen}>
           <SheetTrigger asChild>
             <button
-              className="flex flex-col items-center justify-center h-16 w-full gap-1 transition-all text-muted-foreground hover:text-foreground"
+              className="flex flex-col items-center justify-center h-16 w-full gap-1 transition-all text-muted-foreground hover:text-foreground cursor-pointer"
             >
               <Menu className="h-5 w-5 transition-all" />
               <span className="text-[9px] font-bold uppercase tracking-widest transition-all opacity-50">
@@ -337,9 +393,9 @@ export function Sidebar() {
                         <button
                           onClick={() => toggleGroup(item.name)}
                           className={cn(
-                            "flex items-center justify-between w-full p-4 rounded-xl transition-all border",
+                            "flex items-center justify-between w-full p-4 rounded-xl transition-all border cursor-pointer",
                             isChildActive
-                              ? "bg-primary/10 border-primary/20 text-primary"
+                              ? `${item.theme.activeBg} ${item.theme.mobBorder} ${item.theme.activeText}`
                               : "bg-zinc-900/50 border-zinc-800/50 text-zinc-400"
                           )}
                         >
@@ -362,7 +418,7 @@ export function Sidebar() {
                                 onClick={() => setIsOpen(false)}
                                 className={cn(
                                   "flex items-center gap-2 p-3 rounded-lg transition-all text-xs font-semibold uppercase tracking-wider",
-                                  isSubActive ? "text-primary bg-zinc-900 border border-zinc-800" : "text-zinc-500 hover:text-zinc-100"
+                                  isSubActive ? `${item.theme.activeText} bg-zinc-900 border border-zinc-800` : "text-zinc-500 hover:text-zinc-100"
                                 )}
                               >
                                 {child.name}
@@ -383,7 +439,7 @@ export function Sidebar() {
                       className={cn(
                         "flex items-center gap-3 p-4 rounded-xl transition-all border w-full",
                         isActive
-                          ? "bg-primary/10 border-primary/20 text-primary"
+                          ? `${item.theme.activeBg} ${item.theme.mobBorder} ${item.theme.activeText}`
                           : "bg-zinc-900/50 border-zinc-800/50 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100"
                       )}
                     >
@@ -401,7 +457,7 @@ export function Sidebar() {
                   setIsOpen(false);
                   setIsManualOpen(true);
                 }}
-                className="flex items-center gap-3 w-full p-4 rounded-2xl transition-all border bg-primary/10 border-primary/20 text-primary hover:bg-primary/20"
+                className="flex items-center gap-3 w-full p-4 rounded-2xl transition-all border bg-primary/10 border-primary/20 text-primary hover:bg-primary/20 cursor-pointer"
               >
                 <HelpCircle className="w-5 h-5 opacity-80" />
                 <span className="font-bold text-[10px] tracking-widest uppercase opacity-90">Manual do Usuário</span>
@@ -412,7 +468,7 @@ export function Sidebar() {
                   setIsOpen(false);
                   signOut({ callbackUrl: "/login" });
                 }}
-                className="flex items-center gap-3 w-full p-4 rounded-2xl transition-all border bg-red-500/10 border-red-500/20 text-red-500 hover:bg-red-500/20"
+                className="flex items-center gap-3 w-full p-4 rounded-2xl transition-all border bg-red-500/10 border-red-500/20 text-red-500 hover:bg-red-500/20 cursor-pointer"
               >
                 <LogOut className="w-5 h-5 opacity-80" />
                 <span className="font-bold text-[10px] tracking-widest uppercase opacity-90">Sair do Sistema</span>

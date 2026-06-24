@@ -133,20 +133,28 @@ export default async function DashboardPage() {
 
       {/* Main Stats Grid */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-px bg-zinc-800 border border-zinc-800 rounded-xl overflow-hidden shadow-2xl">
-        <div className="bg-zinc-950 p-6 flex flex-col justify-center items-center text-center">
-          <span className="text-3xl font-black text-white">{totalSpaces}</span>
+        <div className="bg-zinc-950/80 p-6 flex flex-col justify-center items-center text-center transition-all duration-300 hover:bg-zinc-900/40 group">
+          <span className="text-3xl font-black text-white group-hover:scale-115 transition-transform duration-300">
+            {totalSpaces}
+          </span>
           <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest mt-1">Espaços ativos</span>
         </div>
-        <div className="bg-zinc-950 p-6 flex flex-col justify-center items-center text-center">
-          <span className="text-3xl font-black text-white">{totalLists}</span>
+        <div className="bg-zinc-950/80 p-6 flex flex-col justify-center items-center text-center transition-all duration-300 hover:bg-zinc-900/40 group">
+          <span className="text-3xl font-black text-blue-400 group-hover:scale-115 transition-transform duration-300">
+            {totalLists}
+          </span>
           <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest mt-1">Listas Processos</span>
         </div>
-        <div className="bg-zinc-950 p-6 flex flex-col justify-center items-center text-center">
-          <span className="text-3xl font-black text-white">{data.todaysRoutines.length}</span>
+        <div className="bg-zinc-950/80 p-6 flex flex-col justify-center items-center text-center transition-all duration-300 hover:bg-zinc-900/40 group">
+          <span className="text-3xl font-black text-emerald-400 group-hover:scale-115 transition-transform duration-300">
+            {data.todaysRoutines.length}
+          </span>
           <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest mt-1">Rotinas do dia</span>
         </div>
-        <div className="bg-zinc-950 p-6 flex flex-col justify-center items-center text-center">
-          <span className="text-3xl font-black text-primary">{data.completedTodayCount}</span>
+        <div className="bg-zinc-950/80 p-6 flex flex-col justify-center items-center text-center transition-all duration-300 hover:bg-zinc-900/40 group">
+          <span className="text-3xl font-black text-orange-400 group-hover:scale-115 transition-transform duration-300">
+            {data.completedTodayCount}
+          </span>
           <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest mt-1">Tarefas Feitas Hoje</span>
         </div>
       </div>
@@ -155,22 +163,22 @@ export default async function DashboardPage() {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Left column (Routines & Checklists) */}
         <div className="lg:col-span-7 space-y-6">
-          <div className="noir-glass border border-zinc-850 p-6 rounded-xl space-y-4">
+          <div className="bg-zinc-950/40 backdrop-blur-xl glow-card-rotinas p-6 rounded-xl space-y-4">
             <h3 className="text-sm font-black uppercase tracking-widest text-white flex items-center gap-2">
-              <ClipboardList className="w-4 h-4 text-primary" />
+              <ClipboardList className="w-4 h-4 text-emerald-400" />
               Rotinas & SOPs de Hoje
             </h3>
             <DashboardWidget initialRoutines={data.todaysRoutines} dateStr={data.dateStr} />
           </div>
 
           {/* Pending Tasks */}
-          <div className="noir-glass border border-zinc-850 p-6 rounded-xl space-y-4">
+          <div className="bg-zinc-950/40 backdrop-blur-xl glow-card-processos p-6 rounded-xl space-y-4">
             <div className="flex justify-between items-center">
               <h3 className="text-sm font-black uppercase tracking-widest text-white flex items-center gap-2">
-                <Layers className="w-4 h-4 text-primary" />
+                <Layers className="w-4 h-4 text-blue-400" />
                 Tarefas de Processo Pendentes
               </h3>
-              <Link href="/processes" className="text-[10px] font-bold uppercase tracking-widest text-primary flex items-center gap-1 hover:underline">
+              <Link href="/processes" className="text-[10px] font-bold uppercase tracking-widest text-blue-400 flex items-center gap-1 hover:underline">
                 Ver todos <ArrowRight className="w-3 h-3" />
               </Link>
             </div>
@@ -179,8 +187,8 @@ export default async function DashboardPage() {
             ) : (
               <div className="divide-y divide-zinc-900">
                 {data.pendingTasks.map((task) => (
-                  <div key={task.id} className="py-3 flex items-center justify-between text-xs">
-                    <div className="space-y-1">
+                  <div key={task.id} className="py-3 flex items-center justify-between text-xs hover:bg-white/[0.01] px-1 rounded transition-colors duration-200">
+                     <div className="space-y-1">
                       <p className="font-bold text-white">{task.title}</p>
                       <p className="text-[10px] text-zinc-500 uppercase tracking-widest">
                         {task.list?.space?.name} / {task.list?.name}
@@ -201,13 +209,13 @@ export default async function DashboardPage() {
         {/* Right column (Recent Notes & Quick Access) */}
         <div className="lg:col-span-5 space-y-6">
           {/* Notes & Mindmaps */}
-          <div className="noir-glass border border-zinc-850 p-6 rounded-xl space-y-4">
+          <div className="bg-zinc-950/40 backdrop-blur-xl glow-card-notas p-6 rounded-xl space-y-4">
             <div className="flex justify-between items-center">
               <h3 className="text-sm font-black uppercase tracking-widest text-white flex items-center gap-2">
-                <StickyNote className="w-4 h-4 text-primary" />
+                <StickyNote className="w-4 h-4 text-orange-400" />
                 Notas & Mapas Mentais Recentes
               </h3>
-              <Link href="/notes" className="text-[10px] font-bold uppercase tracking-widest text-primary flex items-center gap-1 hover:underline">
+              <Link href="/notes" className="text-[10px] font-bold uppercase tracking-widest text-orange-400 flex items-center gap-1 hover:underline">
                 Abrir Notas <ArrowRight className="w-3 h-3" />
               </Link>
             </div>
@@ -219,10 +227,15 @@ export default async function DashboardPage() {
                   <Link
                     key={note.id}
                     href={note.type === "MINDMAP" && note.mindMapId ? `/visual/${note.mindMapId}` : "/notes"}
-                    className="p-3 bg-zinc-900/40 border border-zinc-800/60 rounded-lg flex items-center gap-3 hover:bg-zinc-900/80 transition-all cursor-pointer block"
+                    className={cn(
+                      "p-3 bg-zinc-900/40 border border-zinc-800/60 rounded-lg flex items-center gap-3 transition-all cursor-pointer block",
+                      note.type === "MINDMAP"
+                        ? "hover:border-orange-500/30 hover:shadow-[0_0_15px_rgba(249,115,22,0.04)] hover:bg-zinc-900/80"
+                        : "hover:border-zinc-700/50 hover:bg-zinc-900/80"
+                    )}
                   >
                     {note.type === "MINDMAP" ? (
-                      <BrainCircuit className="w-4 h-4 text-primary shrink-0" />
+                      <BrainCircuit className="w-4 h-4 text-orange-400 shrink-0" />
                     ) : (
                       <StickyNote className="w-4 h-4 text-zinc-500 shrink-0" />
                     )}
@@ -239,7 +252,7 @@ export default async function DashboardPage() {
           </div>
 
           {/* Quick Info & Help */}
-          <div className="p-6 bg-zinc-950 border border-zinc-850 rounded-xl space-y-4 shadow-xl">
+          <div className="p-6 bg-zinc-950/40 backdrop-blur-xl glow-card-primary rounded-xl space-y-4 shadow-xl">
             <h3 className="text-xs font-black uppercase tracking-widest text-white flex items-center gap-2">
               <ShieldCheck className="w-4 h-4 text-emerald-400" />
               Painel Operacional Simplificado
@@ -249,7 +262,7 @@ export default async function DashboardPage() {
             </p>
             <div className="pt-2">
               <Link href="/profile">
-                <button className="w-full bg-zinc-900 border border-zinc-800 hover:bg-zinc-800 text-white font-bold uppercase tracking-widest text-[9px] py-2 rounded transition-colors">
+                <button className="w-full bg-zinc-900 border border-zinc-800 hover:bg-zinc-800 text-white font-bold uppercase tracking-widest text-[9px] py-2 rounded transition-colors cursor-pointer">
                   Configurações de Perfil
                 </button>
               </Link>
