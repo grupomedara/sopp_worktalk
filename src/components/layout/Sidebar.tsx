@@ -28,7 +28,6 @@ import {
 import { signOut } from "next-auth/react";
 import { Sheet, SheetContent, SheetTrigger, SheetTitle, SheetHeader, SheetClose } from "@/components/ui/sheet";
 import { NotificationToggle } from "@/components/ui/NotificationToggle";
-import { ManualDialog } from "./ManualDialog";
 
 // Items displayed in the mobile bottom navigation (most important ones)
 const bottomNavItems = [
@@ -118,7 +117,6 @@ export function Sidebar({ tenantName, logoUrl, userRole }: { tenantName?: string
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
-  const [isManualOpen, setIsManualOpen] = useState(false);
   const navRef = useRef<HTMLElement>(null);
   const [openGroups, setOpenGroups] = useState<string | null>(null);
 
@@ -281,22 +279,6 @@ export function Sidebar({ tenantName, logoUrl, userRole }: { tenantName?: string
           })}
 
           <button
-            onClick={() => setIsManualOpen(true)}
-            className="flex items-center w-full h-12 rounded-none transition-all duration-300 relative overflow-hidden group/manual text-muted-foreground hover:bg-primary/10 hover:text-primary cursor-pointer"
-          >
-            <div className="w-1 absolute left-0 h-full transition-transform duration-300 bg-primary scale-y-0 group-hover/manual:rotate-12 group-hover/manual:scale-y-100" />
-            <div className="min-w-[56px] flex items-center justify-center">
-              <HelpCircle className="h-5 w-5 transition-transform group-hover/manual:scale-110" />
-            </div>
-            <span className={cn(
-              "ml-0 opacity-0 group-hover/sidebar:opacity-100 group-hover/sidebar:ml-2 transition-all duration-300 whitespace-nowrap font-black text-[10px] uppercase tracking-widest",
-              isSidebarExpanded && "opacity-100 ml-2"
-                )}>
-              Manual
-            </span>
-          </button>
-
-          <button
             onClick={() => signOut({ callbackUrl: "/login" })}
             className="flex items-center w-full h-12 rounded-none transition-all duration-300 relative overflow-hidden group/logout text-muted-foreground hover:bg-red-500/10 hover:text-red-500 cursor-pointer"
           >
@@ -457,16 +439,6 @@ export function Sidebar({ tenantName, logoUrl, userRole }: { tenantName?: string
             </div>
             {/* Mobile Footer Area */}
             <div className="w-full pt-4 mt-auto space-y-2">
-              <button
-                onClick={() => {
-                  setIsOpen(false);
-                  setIsManualOpen(true);
-                }}
-                className="flex items-center gap-3 w-full p-4 rounded-2xl transition-all border bg-primary/10 border-primary/20 text-primary hover:bg-primary/20 cursor-pointer"
-              >
-                <HelpCircle className="w-5 h-5 opacity-80" />
-                <span className="font-bold text-[10px] tracking-widest uppercase opacity-90">Manual do Usuário</span>
-              </button>
               <NotificationToggle />
               <button
                 onClick={() => {
@@ -482,8 +454,6 @@ export function Sidebar({ tenantName, logoUrl, userRole }: { tenantName?: string
           </SheetContent>
         </Sheet>
       </nav>
-
-      <ManualDialog open={isManualOpen} onOpenChange={setIsManualOpen} />
     </>
   );
 }
