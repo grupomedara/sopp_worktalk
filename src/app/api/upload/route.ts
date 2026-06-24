@@ -1,8 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
-import { writeFile, mkdir } from "fs/promises";
-import { join } from "path";
-import { existsSync } from "fs";
 
 export async function POST(req: NextRequest) {
     try {
@@ -20,22 +17,11 @@ export async function POST(req: NextRequest) {
 
         const bytes = await file.arrayBuffer();
         const buffer = Buffer.from(bytes);
-
-        // Sanitize filename to avoid directory traversal
-        const sanitizedOriginalName = file.name.replace(/[^a-zA-Z0-9.-]/g, "_");
-        const uniqueFilename = `${Date.now()}_${sanitizedOriginalName}`;
-
-        const uploadDir = join(process.cwd(), "public", "uploads");
-
-        // Ensure directory exists
-        if (!existsSync(uploadDir)) {
-            await mkdir(uploadDir, { recursive: true });
-        }
-
-        const filePath = join(uploadDir, uniqueFilename);
-        await writeFile(filePath, buffer);
-
-        const fileUrl = `/uploads/${uniqueFilename}`;
+        const base64 = buffer.toString("base64");
+        
+        // Construct Data URL
+        const mimeType = file.type || "application/octet-stream";
+        const fileUrl = `data:${mimeType};base64,${base64}`;
 
         return NextResponse.json({
             success: true,
