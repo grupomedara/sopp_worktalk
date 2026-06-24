@@ -26,6 +26,7 @@ model User {
   routineExecutions RoutineExecution[]
   routineShares     RoutineShare[]
   noteShares        NoteShare[]
+  taskComments      TaskComment[]
 }
 
 model Note {
@@ -214,6 +215,7 @@ model Task {
   list               List?          @relation(fields: [listId], references: [id], onDelete: Cascade)
   customFieldValues  Json?
   estimatedTime      Int?           @default(0)
+  comments           TaskComment[]
 
   @@index([status])
   @@index([userId])
@@ -324,5 +326,21 @@ model NoteShare {
 
   @@unique([noteId, userId])
   @@index([noteId])
+  @@index([userId])
+}
+
+model TaskComment {
+  id             String   @id @default(uuid())
+  taskId         String
+  userId         String
+  content        String
+  attachmentUrl  String?
+  attachmentName String?
+  createdAt      DateTime @default(now())
+
+  task      Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([taskId])
   @@index([userId])
 }

@@ -7,11 +7,11 @@ import {
     ChevronDown, Settings, CheckCircle2, Circle, AlertCircle, 
     MoreHorizontal, Columns, Phone, Mail, 
     Type, Hash, CheckSquare, PlusCircle, Check, ArrowUpDown, ChevronUp,
-    FileSpreadsheet
+    FileSpreadsheet, Paperclip, MessageSquare, Loader2, X, Download
 } from "lucide-react";
 import { 
     updateList, createListTask, updateListTask, deleteListTask, instantiateTemplate,
-    duplicateList, getSpaces
+    duplicateList, getSpaces, createTaskComment, deleteTaskComment
 } from "@/app/actions/processes";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -39,6 +39,238 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
 import { ConfirmModal } from "@/components/ui/confirm-modal";
+
+function FileCell({ task, fieldId, value, isViewer, onUpdate }: {
+    task: any;
+    fieldId: string;
+    value: any;
+    isViewer: boolean;
+    onUpdate: (val: any) => void;
+}) {
+    const [uploading, setUploading] = useState(false);
+
+    let fileObj: { url: string, name: string } | null = null;
+    if (value) {
+        if (typeof value === "object") {
+            fileObj = value;
+        } else if (typeof value === "string") {
+            try {
+                fileObj = JSON.parse(value);
+            } catch (e) {
+                fileObj = { url: value, name: value.split("/").pop() || "arquivo" };
+            }
+        }
+    }
+
+    const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        setUploading(true);
+        try {
+            const formData = new FormData();
+            formData.append("file", file);
+
+            const res = await fetch("/api/upload", {
+                method: "POST",
+                body: formData,
+            });
+            const data = await res.json();
+
+            if (data.success) {
+                onUpdate({ url: data.url, name: data.name });
+                toast.success("Arquivo enviado com sucesso!");
+            } else {
+                toast.error(data.error || "Erro no upload");
+            }
+        } catch (err) {
+            console.error(err);
+            toast.error("Erro ao fazer upload do arquivo");
+        } finally {
+            setUploading(false);
+        }
+    };
+
+    if (fileObj) {
+        return (
+            <div className="flex items-center justify-between gap-2 max-w-[200px] bg-zinc-900/60 border border-zinc-850 rounded-lg px-2 py-0.5 text-xs select-none">
+                <a
+                    href={fileObj.url}
+                    download={fileObj.name}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-1.5 text-blue-400 hover:text-blue-300 font-bold truncate max-w-[120px] transition-colors"
+                    title={fileObj.name}
+                >
+                    <Paperclip className="w-3 h-3 shrink-0 text-zinc-550" />
+                    <span className="truncate">{fileObj.name}</span>
+                </a>
+                {!isViewer && (
+                    <button
+                        onClick={() => onUpdate(null)}
+                        className="text-zinc-500 hover:text-red-400 p-0.5 transition-colors cursor-pointer"
+                        title="Remover arquivo"
+                    >
+                        <X className="w-3 h-3" />
+                    </button>
+                )}
+            </div>
+        );
+    }
+
+    return (
+        <div className="relative">
+            {uploading ? (
+                <div className="flex items-center gap-1.5 px-2 py-1 text-zinc-500 font-bold select-none text-[9px] uppercase tracking-wider">
+                    <Loader2 className="w-3 h-3 animate-spin text-zinc-400" />
+                    <span>Enviando...</span>
+                </div>
+            ) : isViewer ? (
+                <span className="text-zinc-750 font-normal italic text-[10px] pl-2">—</span>
+            ) : (
+                <label className="flex items-center gap-1 px-2 py-0.5 rounded-lg border border-dashed border-zinc-800 hover:border-zinc-700 hover:bg-zinc-900/40 text-zinc-500 hover:text-zinc-300 font-bold cursor-pointer transition-all w-fit select-none text-[9px] uppercase tracking-wider">
+                    <Paperclip className="w-3 h-3 text-zinc-650" />
+                    <span>Anexar</span>
+                    <input
+                        type="file"
+                        onChange={handleFileChange}
+                        className="hidden"
+                    />
+                </label>
+            )}
+        </div>
+    );
+}
+
+function CommentInputSection({ 
+    taskId, 
+    onCommentCreated 
+}: { 
+    taskId: string; 
+    onCommentCreated: (comment: any) => void; 
+}) {
+    const [content, setContent] = useState("");
+    const [attachment, setAttachment] = useState<{ url: string; name: string } | null>(null);
+    const [uploading, setUploading] = useState(false);
+    const [sending, setSending] = useState(false);
+
+    const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        setUploading(true);
+        try {
+            const formData = new FormData();
+            formData.append("file", file);
+
+            const res = await fetch("/api/upload", {
+                method: "POST",
+                body: formData
+            });
+            const data = await res.json();
+
+            if (data.success) {
+                setAttachment({ url: data.url, name: data.name });
+                toast.success("Arquivo anexado!");
+            } else {
+                toast.error(data.error || "Erro no upload");
+            }
+        } catch (err) {
+            console.error(err);
+            toast.error("Erro ao anexar arquivo");
+        } finally {
+            setUploading(false);
+        }
+    };
+
+    const handleSend = async () => {
+        if (!content.trim() && !attachment) return;
+
+        setSending(true);
+        try {
+            const res = await createTaskComment(
+                taskId, 
+                content, 
+                attachment?.url, 
+                attachment?.name
+            );
+
+            if (res.success && res.data) {
+                onCommentCreated(res.data);
+                setContent("");
+                setAttachment(null);
+            } else {
+                toast.error(res.error || "Erro ao enviar comentário");
+            }
+        } catch (err) {
+            console.error(err);
+            toast.error("Erro de rede");
+        } finally {
+            setSending(false);
+        }
+    };
+
+    return (
+        <div className="p-4 border-t border-zinc-800 bg-zinc-900/20 space-y-3 shrink-0">
+            {attachment && (
+                <div className="flex items-center justify-between bg-zinc-950 border border-zinc-850 rounded-lg p-2 text-xs select-none">
+                    <div className="flex items-center gap-2 text-zinc-350 font-bold truncate">
+                        <Paperclip className="w-3.5 h-3.5 text-zinc-550 shrink-0" />
+                        <span className="truncate max-w-[350px]">{attachment.name}</span>
+                    </div>
+                    <button 
+                        onClick={() => setAttachment(null)}
+                        className="text-zinc-550 hover:text-red-400 p-0.5 transition-colors cursor-pointer"
+                    >
+                        <X className="w-3.5 h-3.5" />
+                    </button>
+                </div>
+            )}
+
+            <div className="flex items-end gap-2.5">
+                <div className="relative shrink-0">
+                    {uploading ? (
+                        <div className="flex items-center justify-center h-9 w-9 bg-zinc-900 border border-zinc-800 rounded-lg">
+                            <Loader2 className="w-4 h-4 animate-spin text-zinc-500" />
+                        </div>
+                    ) : (
+                        <label className="flex items-center justify-center h-9 w-9 bg-zinc-900 hover:bg-zinc-850 border border-zinc-800 hover:border-zinc-750 text-zinc-400 hover:text-white rounded-lg cursor-pointer transition-all">
+                            <Paperclip className="w-4 h-4" />
+                            <input 
+                                type="file" 
+                                onChange={handleFileChange} 
+                                className="hidden" 
+                            />
+                        </label>
+                    )}
+                </div>
+
+                <div className="flex-1">
+                    <Input 
+                        value={content}
+                        onChange={(e) => setContent(e.target.value)}
+                        onKeyDown={(e) => {
+                            if (e.key === "Enter" && !e.shiftKey) {
+                                e.preventDefault();
+                                handleSend();
+                            }
+                        }}
+                        placeholder="Escreva uma mensagem..."
+                        className="h-9 bg-zinc-900 border-zinc-800 text-white font-bold text-xs focus:ring-1 focus:ring-white/10"
+                    />
+                </div>
+
+                <Button 
+                    onClick={handleSend}
+                    disabled={sending || uploading || (!content.trim() && !attachment)}
+                    className="bg-blue-600 hover:bg-blue-500 text-white font-bold uppercase text-[9px] tracking-widest h-9 px-4 shrink-0"
+                >
+                    {sending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : "Enviar"}
+                </Button>
+            </div>
+        </div>
+    );
+}
 
 interface SpreadsheetGridProps {
     list: any;
@@ -106,6 +338,7 @@ export function SpreadsheetGrid({ list, currentUserId }: SpreadsheetGridProps) {
     const [quickTitleByStatus, setQuickTitleByStatus] = useState<Record<string, string>>({});
 
     // Dialog States
+    const [selectedTaskForComments, setSelectedTaskForComments] = useState<any | null>(null);
     const [isColumnDialogOpen, setIsColumnDialogOpen] = useState(false);
     const [isCloneDialogOpen, setIsCloneDialogOpen] = useState(false);
     const [newColumnName, setNewColumnName] = useState("");
@@ -908,7 +1141,7 @@ export function SpreadsheetGrid({ list, currentUserId }: SpreadsheetGridProps) {
                                                     </div>
                                                 </th>
                                             ))}
-                                            <th className="w-16 px-4 text-center bg-zinc-900/40">Ações</th>
+                                            <th className="w-24 px-4 text-center bg-zinc-900/40">Ações</th>
                                         </tr>
                                     </thead>
  
@@ -1191,6 +1424,17 @@ export function SpreadsheetGrid({ list, currentUserId }: SpreadsheetGridProps) {
                                                                     </div>
                                                                 )}
 
+                                                                {/* Custom File field type */}
+                                                                {field.type === "file" && (
+                                                                    <FileCell
+                                                                        task={task}
+                                                                        fieldId={field.id}
+                                                                        value={value}
+                                                                        isViewer={isViewer}
+                                                                        onUpdate={(val) => handleUpdateCustomField(task.id, task, field.id, val)}
+                                                                    />
+                                                                )}
+
                                                                 {/* Standard inputs (Text, Number, Email, Phone) */}
                                                                 {["text", "number", "email", "phone"].includes(field.type) && (
                                                                     isEditing && !isViewer ? (
@@ -1242,21 +1486,38 @@ export function SpreadsheetGrid({ list, currentUserId }: SpreadsheetGridProps) {
                                                         );
                                                     })}
 
-                                                    {/* Trash Delete button column — hidden for viewers */}
-                                                    <td className="px-4 text-center">
-                                                        {!isViewer && (
+                                                    {/* Discussion and Delete action buttons */}
+                                                    <td className="px-4 text-center border-l border-zinc-900/40">
+                                                        <div className="flex items-center justify-center gap-1">
                                                             <Button 
                                                                 size="icon" 
                                                                 variant="ghost" 
-                                                                className="h-7 w-7 text-zinc-500 hover:text-red-400 hover:bg-red-950/20"
-                                                                onClick={() => {
-                                                                    setTaskToDelete(task.id);
-                                                                    setIsConfirmDeleteOpen(true);
-                                                                }}
+                                                                className="h-7 w-7 text-zinc-400 hover:text-blue-400 hover:bg-blue-950/20 relative"
+                                                                onClick={() => setSelectedTaskForComments(task)}
+                                                                title="Discussão e Anexos"
                                                             >
-                                                                <Trash2 className="w-3.5 h-3.5" />
+                                                                <MessageSquare className="w-3.5 h-3.5" />
+                                                                {task.comments && task.comments.length > 0 && (
+                                                                    <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-blue-600 text-[8px] font-black text-white border border-zinc-950">
+                                                                        {task.comments.length}
+                                                                    </span>
+                                                                )}
                                                             </Button>
-                                                        )}
+                                                            {!isViewer && (
+                                                                <Button 
+                                                                    size="icon" 
+                                                                    variant="ghost" 
+                                                                    className="h-7 w-7 text-zinc-550 hover:text-red-400 hover:bg-red-950/20"
+                                                                    onClick={() => {
+                                                                        setTaskToDelete(task.id);
+                                                                        setIsConfirmDeleteOpen(true);
+                                                                    }}
+                                                                    title="Excluir Linha"
+                                                                >
+                                                                    <Trash2 className="w-3.5 h-3.5" />
+                                                                </Button>
+                                                            )}
+                                                        </div>
                                                     </td>
                                                 </tr>
                                             );
@@ -1379,6 +1640,7 @@ export function SpreadsheetGrid({ list, currentUserId }: SpreadsheetGridProps) {
                                         { label: "Menu Suspenso (Dropdown)", value: "dropdown", icon: ChevronDown },
                                         { label: "Caixa de Seleção (Checkbox)", value: "checkbox", icon: CheckSquare },
                                         { label: "Progresso (Progression Bar)", value: "progress", icon: CheckCircle2 },
+                                        { label: "Anexar Arquivo (File)", value: "file", icon: Paperclip },
                                         { label: "Texto Livre", value: "text", icon: Type },
                                         { label: "Telefone", value: "phone", icon: Phone },
                                         { label: "E-mail", value: "email", icon: Mail },
@@ -1536,6 +1798,7 @@ export function SpreadsheetGrid({ list, currentUserId }: SpreadsheetGridProps) {
                                         { label: "Menu Suspenso (Dropdown)", value: "dropdown", icon: ChevronDown },
                                         { label: "Caixa de Seleção (Checkbox)", value: "checkbox", icon: CheckSquare },
                                         { label: "Progresso (Progression Bar)", value: "progress", icon: CheckCircle2 },
+                                        { label: "Anexar Arquivo (File)", value: "file", icon: Paperclip },
                                         { label: "Texto Livre", value: "text", icon: Type },
                                         { label: "Telefone", value: "phone", icon: Phone },
                                         { label: "E-mail", value: "email", icon: Mail },
@@ -1620,6 +1883,145 @@ export function SpreadsheetGrid({ list, currentUserId }: SpreadsheetGridProps) {
                     confirmText="Remover"
                     cancelText="Cancelar"
                 />
+            )}
+
+            {/* Task Discussion Dialog */}
+            {selectedTaskForComments && (
+                <Dialog 
+                    open={!!selectedTaskForComments} 
+                    onOpenChange={(open) => {
+                        if (!open) {
+                            setSelectedTaskForComments(null);
+                        }
+                    }}
+                >
+                    <DialogContent className="noir-glass border-zinc-800 max-w-2xl h-[600px] flex flex-col p-0 overflow-hidden">
+                        {/* Header */}
+                        <div className="p-4 border-b border-zinc-850 bg-zinc-900/20 flex items-center justify-between shrink-0">
+                            <div>
+                                <span className="text-[9px] font-black uppercase tracking-widest text-blue-400">
+                                    Discussão & Anexos
+                                </span>
+                                <DialogTitle className="text-white uppercase tracking-wider text-xs font-bold mt-0.5 truncate max-w-[450px]">
+                                    {selectedTaskForComments.title}
+                                </DialogTitle>
+                            </div>
+                        </div>
+
+                        {/* Comments List (Timeline) */}
+                        <div className="flex-1 overflow-y-auto p-4 space-y-4 min-h-0 no-scrollbar">
+                            {!selectedTaskForComments.comments || selectedTaskForComments.comments.length === 0 ? (
+                                <div className="h-full flex flex-col items-center justify-center text-center p-8 select-none">
+                                    <MessageSquare className="w-8 h-8 text-zinc-750 mb-2" />
+                                    <p className="text-[9px] uppercase tracking-widest font-bold text-zinc-550">
+                                        Nenhuma mensagem. Comece a discussão abaixo!
+                                    </p>
+                                </div>
+                            ) : (
+                                selectedTaskForComments.comments.map((comment: any) => {
+                                    const isAuthor = comment.userId === currentUserId;
+                                    return (
+                                        <div 
+                                            key={comment.id} 
+                                            className={cn(
+                                                "flex gap-3 max-w-[85%] group/msg",
+                                                isAuthor ? "ml-auto flex-row-reverse" : "mr-auto"
+                                            )}
+                                        >
+                                            {/* Avatar (Initials) */}
+                                            <div className="w-8 h-8 rounded-full bg-zinc-900 border border-zinc-800 flex items-center justify-center text-[10px] font-black text-zinc-450 uppercase shrink-0 select-none">
+                                                {comment.user?.name ? comment.user.name.substring(0, 2) : "US"}
+                                            </div>
+
+                                            {/* Content Bubble */}
+                                            <div className="flex flex-col space-y-1">
+                                                <div className="flex items-center gap-2 text-[8px] text-zinc-550 font-bold px-1 select-none">
+                                                    <span>{comment.user?.name || "Usuário"}</span>
+                                                    <span>•</span>
+                                                    <span>{formatDateTime(comment.createdAt)}</span>
+                                                    {isAuthor && (
+                                                        <button
+                                                            onClick={async () => {
+                                                                const res = await deleteTaskComment(comment.id);
+                                                                if (res.success) {
+                                                                    toast.success("Comentário excluído");
+                                                                    setSelectedTaskForComments((prev: any) => {
+                                                                        if (!prev) return null;
+                                                                        return {
+                                                                            ...prev,
+                                                                            comments: prev.comments.filter((c: any) => c.id !== comment.id)
+                                                                        };
+                                                                    });
+                                                                    startTransition(() => router.refresh());
+                                                                } else {
+                                                                    toast.error(res.error || "Erro ao excluir");
+                                                                }
+                                                            }}
+                                                            className="opacity-0 group-hover/msg:opacity-100 text-zinc-600 hover:text-red-400 transition-opacity ml-1 cursor-pointer"
+                                                            title="Excluir mensagem"
+                                                        >
+                                                            <Trash2 className="w-3 h-3" />
+                                                        </button>
+                                                    )}
+                                                </div>
+
+                                                <div 
+                                                    className={cn(
+                                                        "p-3 rounded-2xl text-xs leading-normal border shadow-sm break-words whitespace-pre-wrap font-medium",
+                                                        isAuthor 
+                                                            ? "bg-blue-600/10 border-blue-500/20 text-blue-200 rounded-tr-none" 
+                                                            : "bg-zinc-900/60 border-zinc-850 text-zinc-300 rounded-tl-none"
+                                                    )}
+                                                >
+                                                    {comment.content}
+
+                                                    {/* Optional Attachment Card */}
+                                                    {comment.attachmentUrl && (
+                                                        <div className="mt-2.5 p-2 bg-zinc-950/80 border border-zinc-850 rounded-lg flex items-center justify-between gap-4">
+                                                            <a 
+                                                                href={comment.attachmentUrl} 
+                                                                download={comment.attachmentName || "anexo"} 
+                                                                target="_blank" 
+                                                                rel="noopener noreferrer" 
+                                                                className="flex items-center gap-2 text-[10px] font-bold text-blue-400 hover:text-blue-300 truncate transition-colors"
+                                                                title={comment.attachmentName || "Download"}
+                                                            >
+                                                                <Paperclip className="w-3.5 h-3.5 text-zinc-550 shrink-0" />
+                                                                <span className="truncate max-w-[150px]">{comment.attachmentName || "Ver Anexo"}</span>
+                                                            </a>
+                                                            <a 
+                                                                href={comment.attachmentUrl} 
+                                                                download={comment.attachmentName || "anexo"}
+                                                                className="text-zinc-500 hover:text-zinc-350 p-1 shrink-0 transition-colors"
+                                                            >
+                                                                <Download className="w-3.5 h-3.5" />
+                                                            </a>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    );
+                                })
+                            )}
+                        </div>
+
+                        {/* Input Footer */}
+                        <CommentInputSection 
+                            taskId={selectedTaskForComments.id} 
+                            onCommentCreated={(newComment) => {
+                                setSelectedTaskForComments((prev: any) => {
+                                    if (!prev) return null;
+                                    return {
+                                        ...prev,
+                                        comments: [...(prev.comments || []), newComment]
+                                    };
+                                });
+                                startTransition(() => router.refresh());
+                            }}
+                        />
+                    </DialogContent>
+                </Dialog>
             )}
         </div>
     );

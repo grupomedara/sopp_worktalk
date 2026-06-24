@@ -353,6 +353,20 @@ export async function getList(id: string) {
                 },
                 folder: true,
                 tasks: {
+                    include: {
+                        comments: {
+                            include: {
+                                user: {
+                                    select: {
+                                        id: true,
+                                        name: true,
+                                        image: true
+                                    }
+                                }
+                            },
+                            orderBy: { createdAt: "asc" }
+                        }
+                    },
                     orderBy: [{ status: "asc" }, { createdAt: "desc" }]
                 }
             }
@@ -884,3 +898,86 @@ export async function updateProcessOrder(items: { id: string; order: number }[],
         return { success: false, error: error.message || "Failed to update order" };
     }
 }
+
+// ==========================================
+// TASK COMMENT ACTIONS
+// ==========================================
+
+export async function createTaskComment(
+    taskId: string,
+    content: string,
+    attachmentUrl?: string | null,
+    attachmentName?: string | null
+) {
+    try {
+        const session = await auth();
+        if (!session?.user?.id) return { success: false, error: "Unauthorized" };
+        const userId = session.user.id;
+
+        // Verify task exists and user has access (via list space)
+        const task = await db.task.findUnique({
+            where: { id: taskId },
+            include: { list: true }
+        });
+        if (!task || !task.listId) return { success: false, error: "Tarefa não encontrada" };
+
+        const comment = await db.taskComment.create({
+            data: {
+                taskId,
+                userId,
+                content,
+                attachmentUrl: attachmentUrl || null,
+                attachmentName: attachmentName || null
+            },
+            include: {
+                user: {
+                    select: {
+                        id: true,
+                        name: true,
+                        image: true
+                    }
+                }
+            }
+        });
+
+        revalidatePath(`/processes/${task.listId}`);
+        revalidatePath("/processes");
+        return { success: true, data: comment };
+    } catch (error: any) {
+        console.error("Error in createTaskComment:", error);
+        return { success: false, error: error.message || "Failed to create comment" };
+    }
+}
+
+export async function deleteTaskComment(commentId: string) {
+    try {
+        const session = await auth();
+        if (!session?.user?.id) return { success: false, error: "Unauthorized" };
+        const userId = session.user.id;
+
+        const comment = await db.taskComment.findUnique({
+            where: { id: commentId },
+            include: { task: true }
+        });
+        if (!comment) return { success: false, error: "Comentário não encontrado" };
+
+        // Only the author can delete their comment
+        if (comment.userId !== userId) {
+            return { success: false, error: "Sem permissão para excluir este comentário" };
+        }
+
+        await db.taskComment.delete({
+            where: { id: commentId }
+        });
+
+        if (comment.task?.listId) {
+            revalidatePath(`/processes/${comment.task.listId}`);
+        }
+        revalidatePath("/processes");
+        return { success: true };
+    } catch (error: any) {
+        console.error("Error in deleteTaskComment:", error);
+        return { success: false, error: error.message || "Failed to delete comment" };
+    }
+}
+
