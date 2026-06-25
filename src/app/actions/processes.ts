@@ -586,6 +586,40 @@ export async function updateListTask(taskId: string, data: {
             }
         });
 
+        // Audit Trail generation
+        const auditLogs: string[] = [];
+        if (data.title !== undefined && data.title !== task.title) {
+            auditLogs.push(`alterou o título de "${task.title}" para "${data.title}"`);
+        }
+        if (data.status !== undefined && data.status !== task.status) {
+            const statusMap: any = { PENDING: "Pendente", IN_PROGRESS: "Em Progresso", COMPLETED: "Concluído", ARCHIVED: "Arquivado", CANCELED: "Cancelado" };
+            auditLogs.push(`alterou o status de "${statusMap[task.status] || task.status}" para "${statusMap[data.status] || data.status}"`);
+        }
+        if (data.priority !== undefined && data.priority !== task.priority) {
+            auditLogs.push(`alterou a prioridade de "${task.priority}" para "${data.priority}"`);
+        }
+        const oldTime = task.date ? new Date(task.date).getTime() : 0;
+        const newTime = data.date ? new Date(data.date).getTime() : 0;
+        if (data.date !== undefined && oldTime !== newTime) {
+            const oldStr = task.date ? new Date(task.date).toLocaleDateString("pt-BR") : "sem prazo";
+            const newStr = data.date ? new Date(data.date).toLocaleDateString("pt-BR") : "sem prazo";
+            auditLogs.push(`alterou o prazo de "${oldStr}" para "${newStr}"`);
+        }
+
+        if (auditLogs.length > 0) {
+            const userName = session.user.name || "Um usuário";
+            await Promise.all(auditLogs.map(log => 
+                db.taskComment.create({
+                    data: {
+                        taskId,
+                        userId: session.user.id,
+                        content: `${userName} ${log}`,
+                        isSystem: true
+                    }
+                })
+            ));
+        }
+
         if (task.listId) {
             revalidatePath(`/processes/${task.listId}`);
         }
@@ -993,6 +1027,10 @@ export async function deleteTaskComment(commentId: string) {
         // Only the author can delete their comment
         if (comment.userId !== userId) {
             return { success: false, error: "Sem permissão para excluir este comentário" };
+        }
+
+        if (comment.isSystem) {
+            return { success: false, error: "Registros de auditoria do sistema não podem ser excluídos." };
         }
 
         await db.taskComment.delete({

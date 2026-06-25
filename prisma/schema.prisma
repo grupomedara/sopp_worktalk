@@ -350,14 +350,15 @@ model NoteShare {
 model TaskComment {
   id             String   @id @default(uuid())
   taskId         String
-  userId         String
+  userId         String?
   content        String
   attachmentUrl  String?
   attachmentName String?
+  isSystem       Boolean  @default(false)
   createdAt      DateTime @default(now())
 
   task      Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user      User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([taskId])
   @@index([userId])

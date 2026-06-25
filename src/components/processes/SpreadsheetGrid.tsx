@@ -7,7 +7,7 @@ import {
     ChevronDown, Settings, CheckCircle2, Circle, AlertCircle, 
     MoreHorizontal, Columns, Phone, Mail, 
     Type, Hash, CheckSquare, PlusCircle, Check, ArrowUpDown, ChevronUp,
-    FileSpreadsheet, Paperclip, MessageSquare, Loader2, X, Download
+    FileSpreadsheet, Paperclip, MessageSquare, Loader2, X, Download, History
 } from "lucide-react";
 import { 
     updateList, createListTask, updateListTask, deleteListTask, instantiateTemplate,
@@ -1919,6 +1919,20 @@ export function SpreadsheetGrid({ list, currentUserId }: SpreadsheetGridProps) {
                                 </div>
                             ) : (
                                 selectedTaskForComments.comments.map((comment: any) => {
+                                    if (comment.isSystem) {
+                                        return (
+                                            <div 
+                                                key={comment.id} 
+                                                className="w-full flex items-center justify-center py-1 select-none"
+                                            >
+                                                <div className="bg-zinc-900/35 border border-zinc-850 px-3 py-1.5 rounded-2xl text-[9px] font-bold uppercase tracking-wider text-zinc-500 text-center flex items-center gap-2">
+                                                    <History className="w-3.5 h-3.5 text-zinc-600 shrink-0" />
+                                                    <span>{comment.content}</span>
+                                                </div>
+                                            </div>
+                                        );
+                                    }
+
                                     const isAuthor = comment.userId === currentUserId;
                                     return (
                                         <div 
