@@ -30,6 +30,7 @@ export async function unifiedSearch(query: string) {
             db.task.findMany({
                 where: {
                     userId,
+                    deletedAt: null,
                     OR: [
                         { list: { space: { tenantId: tenantId || null } } },
                         { listId: null }

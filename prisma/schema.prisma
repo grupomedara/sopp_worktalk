@@ -214,6 +214,7 @@ model Task {
   updatedAt          DateTime       @updatedAt
   startedAt          DateTime?
   completedAt        DateTime?
+  deletedAt          DateTime?
   kanbanColumn       String?        @default("TODO")
   originalId         String?
   points             Int?

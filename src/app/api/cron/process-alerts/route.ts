@@ -74,6 +74,7 @@ export async function GET(req: Request) {
         date: { not: null },
         reminderMinutes: { gte: 0 },
         status: { notIn: ["COMPLETED", "ARCHIVED", "CANCELED"] },
+        deletedAt: null,
       }
     });
 
@@ -195,6 +196,20 @@ export async function GET(req: Request) {
         });
       }
     }
+
+    // ==========================================
+    // 3. Cleanup tasks soft-deleted more than 30 days ago
+    // ==========================================
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    const deletedCount = await prisma.task.deleteMany({
+      where: {
+        deletedAt: {
+          lte: thirtyDaysAgo
+        }
+      }
+    });
+    debug.push({ action: "auto-cleanup", deletedTasksCount: deletedCount.count });
 
     return NextResponse.json({
       success: true,

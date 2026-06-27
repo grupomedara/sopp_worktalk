@@ -10,6 +10,7 @@ import {
 import { getTodayRoutines } from "@/app/actions/routines";
 import { DashboardWidget } from "@/components/routines/DashboardWidget";
 import { redirect } from "next/navigation";
+import { cn } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
@@ -50,7 +51,8 @@ async function getDashboardData() {
       where: { 
         userId, 
         status: { in: ["PENDING", "IN_PROGRESS"] },
-        listId: { not: null }
+        listId: { not: null },
+        deletedAt: null
       },
       include: { 
         list: { 
@@ -69,7 +71,8 @@ async function getDashboardData() {
         userId, 
         status: "COMPLETED", 
         listId: { not: null },
-        updatedAt: { gte: todayStart, lte: todayEnd } 
+        updatedAt: { gte: todayStart, lte: todayEnd },
+        deletedAt: null
       }
     }),
     // Recent Notes / Mindmaps

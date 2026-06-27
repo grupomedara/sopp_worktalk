@@ -534,6 +534,7 @@ export async function getTasks(
         const tasks = await prisma.task.findMany({
             where: {
                 userId: session.user.id,
+                deletedAt: null,
                 ...(filter?.sprintId ? { sprintId: filter.sprintId } : {}),
                 ...(filter?.projectId ? { projectId: filter.projectId } : {}),
                 ...(filter?.listId ? { listId: filter.listId } : {}),

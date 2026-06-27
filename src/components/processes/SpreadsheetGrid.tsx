@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 import { 
     updateList, createListTask, updateListTask, deleteListTask, instantiateTemplate,
-    duplicateList, getSpaces, createTaskComment, deleteTaskComment
+    duplicateList, getSpaces, createTaskComment, deleteTaskComment, restoreListTask
 } from "@/app/actions/processes";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -434,7 +434,7 @@ export function SpreadsheetGrid({ list, currentUserId }: SpreadsheetGridProps) {
     ];
 
     const getGroupTasks = (statusId: string) => {
-        let tasks = list.tasks.filter((t: any) => t.status === statusId);
+        let tasks = list.tasks.filter((t: any) => t.status === statusId && !t.deletedAt);
 
         if (sortConfig) {
             tasks.sort((a: any, b: any) => {
@@ -527,11 +527,37 @@ export function SpreadsheetGrid({ list, currentUserId }: SpreadsheetGridProps) {
     const handleDeleteRow = async (taskId: string) => {
         const res = await deleteListTask(taskId);
         if (res.success) {
-            toast.success("Linha excluída!");
+            if (res.permanent) {
+                toast.success("Linha excluída definitivamente!");
+            } else {
+                toast.success("Linha movida para a Lixeira!");
+            }
             startTransition(() => router.refresh());
         } else {
             toast.error(res.error || "Erro ao excluir");
         }
+    };
+
+    // Handler to restore a task
+    const handleRestoreTask = async (taskId: string, targetStatus: "PENDING" | "IN_PROGRESS" | "COMPLETED") => {
+        const res = await restoreListTask(taskId, targetStatus);
+        if (res.success) {
+            toast.success("Tarefa restaurada com sucesso!");
+            startTransition(() => router.refresh());
+        } else {
+            toast.error(res.error || "Erro ao restaurar");
+        }
+    };
+
+    // Get only soft-deleted tasks sorted by deletedAt desc
+    const getDeletedTasks = () => {
+        let tasks = list.tasks.filter((t: any) => !!t.deletedAt);
+        tasks.sort((a: any, b: any) => {
+            const aTime = a.deletedAt ? new Date(a.deletedAt).getTime() : 0;
+            const bTime = b.deletedAt ? new Date(b.deletedAt).getTime() : 0;
+            return bTime - aTime;
+        });
+        return tasks;
     };
 
     // Add a custom field column definition
@@ -1607,6 +1633,215 @@ export function SpreadsheetGrid({ list, currentUserId }: SpreadsheetGridProps) {
                             </div>
                         );
                     })}
+
+                    {/* EXCLUDED tasks table - ONLY in spreadsheet view */}
+                    <div className="space-y-2.5 mt-12">
+                        {/* Excluídos Status Header */}
+                        <div className="flex items-center gap-3 px-2">
+                            <span className="flex items-center gap-1.5 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border border-red-500/20 bg-red-950/40 text-red-400 shadow-sm select-none">
+                                <Trash2 className="w-3.5 h-3.5 shrink-0" />
+                                <span>Excluídos (Lixeira)</span>
+                            </span>
+                            <span className="text-[10px] font-bold text-zinc-550 uppercase tracking-widest">
+                                {getDeletedTasks().length} {getDeletedTasks().length === 1 ? "tarefa" : "tarefas"}
+                            </span>
+                        </div>
+
+                        {/* Table Container Card */}
+                        <div className="w-full glow-card-processos rounded-2xl bg-zinc-950/65 backdrop-blur-xl overflow-x-auto shadow-[0_20px_45px_rgba(0,0,0,0.85)] p-0.5">
+                            <table className="w-full border-collapse text-left text-xs min-w-[950px] overflow-hidden rounded-xl">
+                                <thead>
+                                    <tr className="border-b border-zinc-800/80 bg-zinc-900/85 backdrop-blur-md text-zinc-300 font-black tracking-widest text-[9px] h-11 select-none uppercase">
+                                        <th className="w-12 px-4 text-center border-r border-zinc-800/50 bg-zinc-900/40">Status</th>
+                                        <th className="min-w-[260px] px-4 border-r border-zinc-800/50 bg-zinc-900/40">Nome da Linha</th>
+                                        <th className="w-40 px-4 border-r border-zinc-800/50 bg-zinc-900/40">Data de Vencimento</th>
+                                        <th className="w-32 px-4 border-r border-zinc-800/50 bg-zinc-900/40">Prioridade</th>
+                                        <th className="w-44 px-4 border-r border-zinc-800/50 bg-zinc-900/40">Iniciado em</th>
+                                        <th className="w-44 px-4 border-r border-zinc-800/50 bg-zinc-900/40">Concluído em</th>
+                                        <th className="w-32 px-4 border-r border-zinc-800/50 bg-zinc-900/40">Duração</th>
+                                        <th className="w-48 px-4 border-r border-zinc-800/50 bg-zinc-900/40">Responsável</th>
+                                        {/* Custom fields headers */}
+                                        {customFields.map(field => (
+                                            <th key={field.id} className="min-w-[150px] px-4 border-r border-zinc-800/50 bg-zinc-900/40 font-black text-[9px] select-none uppercase">
+                                                {field.name}
+                                            </th>
+                                        ))}
+                                        <th className="w-24 px-4 text-center bg-zinc-900/40">Ações</th>
+                                    </tr>
+                                </thead>
+
+                                <tbody>
+                                    {/* Empty State */}
+                                    {getDeletedTasks().length === 0 && (
+                                        <tr className="border-b border-zinc-900/40 select-none pointer-events-none bg-zinc-950/10">
+                                            <td colSpan={9 + customFields.length} className="px-12 py-4 text-left text-[10px] text-zinc-650 font-bold uppercase tracking-widest">
+                                                Nenhuma tarefa nesta lixeira.
+                                            </td>
+                                        </tr>
+                                    )}
+
+                                    {/* Excluded Tasks Rows */}
+                                    {getDeletedTasks().map((task: any) => {
+                                        const taskValues = (task.customFieldValues as Record<string, any>) || {};
+                                        const matchingStatusGroup = statusGroups.find(g => g.id === task.status) || statusGroups[0];
+                                        
+                                        return (
+                                            <tr key={task.id} className="border-b border-zinc-900/50 hover:bg-white/[0.01] group/row h-11 transition-all opacity-75">
+                                                {/* Column 1: Status Icon */}
+                                                <td className="px-4 text-center border-r border-zinc-900/40">
+                                                    <div className="p-1">
+                                                        <matchingStatusGroup.icon className={cn("w-4.5 h-4.5 opacity-60", matchingStatusGroup.color.split(" ")[0])} />
+                                                    </div>
+                                                </td>
+
+                                                {/* Column 2: Title */}
+                                                <td className="px-4 font-bold text-zinc-400 border-r border-zinc-900/40 line-through">
+                                                    <div className="truncate py-1.5 px-2.5 rounded-lg select-none">
+                                                        {task.title}
+                                                    </div>
+                                                </td>
+
+                                                {/* Column 3: Due Date */}
+                                                <td className="px-4 border-r border-zinc-900/40 text-zinc-500">
+                                                    <div className="flex items-center gap-2 px-2.5 py-1.5">
+                                                        <Calendar className="w-3.5 h-3.5 text-zinc-800 shrink-0" />
+                                                        <span className="text-xs font-bold text-zinc-500">
+                                                            {task.date ? format(parseLocalDate(task.date)!, "dd/MM/yyyy", { locale: ptBR }) : <span className="text-zinc-700 italic font-normal">—</span>}
+                                                        </span>
+                                                    </div>
+                                                </td>
+
+                                                {/* Column 4: Priority */}
+                                                <td className="px-4 border-r border-zinc-900/40 text-zinc-500">
+                                                    <div className="px-2 py-1.5">
+                                                        <Badge className={cn("px-2.5 py-0.5 border font-bold uppercase text-[8px] tracking-widest rounded-full shadow-sm opacity-50", getPriorityObj(task.priority).color)}>
+                                                            {getPriorityObj(task.priority).label}
+                                                        </Badge>
+                                                    </div>
+                                                </td>
+
+                                                {/* Column 5: StartedAt */}
+                                                <td className="px-4 border-r border-zinc-900/40 text-zinc-500">
+                                                    <div className="px-2.5 py-1.5 font-mono text-[10px] text-zinc-650">
+                                                        {task.startedAt ? formatDateTime(task.startedAt) : <span className="text-zinc-700 italic font-normal">—</span>}
+                                                    </div>
+                                                </td>
+
+                                                {/* Column 6: CompletedAt */}
+                                                <td className="px-4 border-r border-zinc-800/50 text-zinc-500">
+                                                    <div className="px-2.5 py-1.5 font-mono text-[10px] text-zinc-650">
+                                                        {task.completedAt ? formatDateTime(task.completedAt) : <span className="text-zinc-700 italic font-normal">—</span>}
+                                                    </div>
+                                                </td>
+
+                                                {/* Column 7: Duration */}
+                                                <td className="px-4 border-r border-zinc-850 text-zinc-500">
+                                                    <div className="px-2.5 py-1.5 font-mono text-[10px] text-zinc-650">
+                                                        {task.startedAt ? (
+                                                            getDurationText(task.startedAt, task.completedAt, task.status)
+                                                        ) : task.status === "COMPLETED" && task.startedAt ? (
+                                                            getDurationText(task.startedAt, task.completedAt, task.status)
+                                                        ) : (
+                                                            <span className="text-zinc-750 italic font-normal">—</span>
+                                                        )}
+                                                    </div>
+                                                </td>
+
+                                                {/* Column 8: Responsible */}
+                                                <td className="px-4 border-r border-zinc-800/50 text-zinc-500">
+                                                    <div className="flex items-center gap-2 px-2.5 py-1.5">
+                                                        <User className="w-3.5 h-3.5 text-zinc-800 shrink-0" />
+                                                        <span className="text-xs font-bold text-zinc-500">
+                                                            {task.responsible?.name || <span className="text-zinc-700 italic font-normal">—</span>}
+                                                        </span>
+                                                    </div>
+                                                </td>
+
+                                                {/* Custom Fields */}
+                                                {customFields.map(field => {
+                                                    const val = taskValues[field.id];
+                                                    let displayText = "";
+                                                    if (typeof val === "boolean") {
+                                                        displayText = val ? "Sim" : "Não";
+                                                    } else if (field.type === "progress") {
+                                                        displayText = `${val || 0}%`;
+                                                    } else if (field.type === "file" && val) {
+                                                        displayText = val.name || "Arquivo";
+                                                    } else {
+                                                        displayText = val || "";
+                                                    }
+                                                    return (
+                                                        <td key={field.id} className="px-4 border-r border-zinc-805 text-zinc-500">
+                                                            <div className="px-2.5 py-1.5 text-xs text-zinc-550 truncate max-w-[150px]">
+                                                                {displayText || <span className="text-zinc-750 italic font-normal">—</span>}
+                                                            </div>
+                                                        </td>
+                                                    );
+                                                })}
+
+                                                {/* Column 9: Actions */}
+                                                <td className="px-4 text-center">
+                                                    <div className="flex items-center justify-center gap-1">
+                                                        {!isViewer && (
+                                                            <>
+                                                                {/* Restore Dropdown */}
+                                                                <DropdownMenu>
+                                                                    <DropdownMenuTrigger asChild>
+                                                                        <Button 
+                                                                            size="icon" 
+                                                                            variant="ghost" 
+                                                                            className="h-7 w-7 text-zinc-400 hover:text-emerald-400 hover:bg-emerald-950/20"
+                                                                            title="Restaurar Tarefa"
+                                                                        >
+                                                                            <History className="w-3.5 h-3.5" />
+                                                                        </Button>
+                                                                    </DropdownMenuTrigger>
+                                                                    <DropdownMenuContent align="end" className="noir-glass border-zinc-800 text-zinc-300">
+                                                                        <DropdownMenuItem 
+                                                                            onClick={() => handleRestoreTask(task.id, "PENDING")}
+                                                                            className="cursor-pointer font-bold text-[10px] uppercase tracking-wide rounded-md"
+                                                                        >
+                                                                            Restaurar para Pendente
+                                                                        </DropdownMenuItem>
+                                                                        <DropdownMenuItem 
+                                                                            onClick={() => handleRestoreTask(task.id, "IN_PROGRESS")}
+                                                                            className="cursor-pointer font-bold text-[10px] uppercase tracking-wide rounded-md"
+                                                                        >
+                                                                            Restaurar para Em Progresso
+                                                                        </DropdownMenuItem>
+                                                                        <DropdownMenuItem 
+                                                                            onClick={() => handleRestoreTask(task.id, "COMPLETED")}
+                                                                            className="cursor-pointer font-bold text-[10px] uppercase tracking-wide rounded-md"
+                                                                        >
+                                                                            Restaurar para Concluído
+                                                                        </DropdownMenuItem>
+                                                                    </DropdownMenuContent>
+                                                                </DropdownMenu>
+
+                                                                {/* Permanent Delete */}
+                                                                <Button 
+                                                                    size="icon" 
+                                                                    variant="ghost" 
+                                                                    className="h-7 w-7 text-zinc-550 hover:text-red-400 hover:bg-red-950/20"
+                                                                    onClick={() => {
+                                                                        setTaskToDelete(task.id);
+                                                                        setIsConfirmDeleteOpen(true);
+                                                                    }}
+                                                                    title="Excluir Permanentemente"
+                                                                >
+                                                                    <Trash2 className="w-3.5 h-3.5" />
+                                                                </Button>
+                                                            </>
+                                                        )}
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        );
+                                    })}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
             )}
 
@@ -1850,22 +2085,29 @@ export function SpreadsheetGrid({ list, currentUserId }: SpreadsheetGridProps) {
             )}
 
             {/* Delete Task Confirmation */}
-            {isConfirmDeleteOpen && (
-                <ConfirmModal
-                    isOpen={isConfirmDeleteOpen}
-                    onOpenChange={setIsConfirmDeleteOpen}
-                    onConfirm={() => {
-                        if (taskToDelete) {
-                            handleDeleteRow(taskToDelete);
-                            setTaskToDelete(null);
+            {isConfirmDeleteOpen && (() => {
+                const taskToDeleteObj = list.tasks.find((t: any) => t.id === taskToDelete);
+                const isSoftDeleted = !!taskToDeleteObj?.deletedAt;
+                return (
+                    <ConfirmModal
+                        isOpen={isConfirmDeleteOpen}
+                        onOpenChange={setIsConfirmDeleteOpen}
+                        onConfirm={() => {
+                            if (taskToDelete) {
+                                handleDeleteRow(taskToDelete);
+                                setTaskToDelete(null);
+                            }
+                        }}
+                        title={isSoftDeleted ? "Excluir Linha definitivamente?" : "Mover Linha para a Lixeira?"}
+                        description={isSoftDeleted 
+                            ? "Esta ação removerá permanentemente a tarefa selecionada e todos os seus valores associados. Esta operação não pode ser desfeita." 
+                            : "A tarefa será enviada para a seção de Excluídos e ficará salva por 30 dias antes de ser removida automaticamente."
                         }
-                    }}
-                    title="Excluir Linha definitivamente?"
-                    description="Esta ação removerá permanentemente a tarefa selecionada e todos os seus valores associados. Esta operação não pode ser desfeita."
-                    confirmText="Excluir"
-                    cancelText="Cancelar"
-                />
-            )}
+                        confirmText={isSoftDeleted ? "Excluir definitivamente" : "Mover para Lixeira"}
+                        cancelText="Cancelar"
+                    />
+                );
+            })()}
 
             {/* Delete Column Confirmation */}
             {isConfirmDeleteColumnOpen && (

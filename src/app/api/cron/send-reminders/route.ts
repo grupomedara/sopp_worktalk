@@ -38,7 +38,7 @@ export async function GET(req: Request) {
     let sentCount = 0;
 
     for (const alarm of dueAlarms) {
-      if (!alarm.task?.userId) continue;
+      if (!alarm.task?.userId || alarm.task.deletedAt) continue;
 
       const subscriptions = await prisma.pushSubscription.findMany({
         where: { userId: alarm.task.userId }

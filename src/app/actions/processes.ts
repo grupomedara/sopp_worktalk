@@ -607,12 +607,13 @@ export async function updateListTask(taskId: string, data: {
         }
 
         if (auditLogs.length > 0) {
+            const userId = session.user.id;
             const userName = session.user.name || "Um usuário";
             await Promise.all(auditLogs.map(log => 
                 db.taskComment.create({
                     data: {
                         taskId,
-                        userId: session.user.id,
+                        userId,
                         content: `${userName} ${log}`,
                         isSystem: true
                     }
@@ -648,17 +649,90 @@ export async function deleteListTask(taskId: string) {
             if (task.userId !== session.user.id) return { success: false, error: "Unauthorized" };
         }
 
-        await db.task.delete({
-            where: { id: taskId }
+        let isPermanent = false;
+        if (task.deletedAt) {
+            await db.task.delete({
+                where: { id: taskId }
+            });
+            isPermanent = true;
+        } else {
+            await db.task.update({
+                where: { id: taskId },
+                data: { deletedAt: new Date() }
+            });
+        }
+
+        if (task.listId) {
+            revalidatePath(`/processes/${task.listId}`);
+        }
+        return { success: true, permanent: isPermanent };
+    } catch (error: any) {
+        console.error("Error in deleteListTask:", error);
+        return { success: false, error: error.message || "Failed to delete task" };
+    }
+}
+
+export async function restoreListTask(taskId: string, targetStatus: "PENDING" | "IN_PROGRESS" | "COMPLETED") {
+    try {
+        const session = await auth();
+        if (!session?.user?.id) return { success: false, error: "Unauthorized" };
+
+        const task = await db.task.findUnique({
+            where: { id: taskId },
+            include: { list: true }
+        });
+        if (!task) return { success: false, error: "Task not found" };
+
+        if (task.listId && task.list) {
+            const hasRights = await verifySpaceEditorRights(task.list.spaceId, session.user.id);
+            if (!hasRights) return { success: false, error: "Apenas leitura: Permissão de Editor necessária." };
+        } else {
+            if (task.userId !== session.user.id) return { success: false, error: "Unauthorized" };
+        }
+
+        let startedAtUpdate: any = undefined;
+        let completedAtUpdate: any = undefined;
+
+        if (targetStatus === "IN_PROGRESS") {
+            startedAtUpdate = new Date();
+            completedAtUpdate = null;
+        } else if (targetStatus === "COMPLETED") {
+            if (!task.startedAt) startedAtUpdate = new Date();
+            completedAtUpdate = new Date();
+        } else if (targetStatus === "PENDING") {
+            startedAtUpdate = null;
+            completedAtUpdate = null;
+        }
+
+        const updatedTask = await db.task.update({
+            where: { id: taskId },
+            data: {
+                deletedAt: null,
+                status: targetStatus,
+                startedAt: startedAtUpdate,
+                completedAt: completedAtUpdate
+            }
+        });
+
+        // Audit Trail generation
+        const userName = session.user.name || "Um usuário";
+        const statusMap: any = { PENDING: "Pendente", IN_PROGRESS: "Em Progresso", COMPLETED: "Concluído" };
+        await db.taskComment.create({
+            data: {
+                taskId,
+                userId: session.user.id,
+                content: `${userName} restaurou a tarefa para o status "${statusMap[targetStatus] || targetStatus}"`,
+                isSystem: true
+            }
         });
 
         if (task.listId) {
             revalidatePath(`/processes/${task.listId}`);
         }
-        return { success: true };
+        return { success: true, data: updatedTask };
     } catch (error: any) {
-        console.error("Error in deleteListTask:", error);
-        return { success: false, error: error.message || "Failed to delete task" };
+        console.error("Error in restoreListTask:", error);
+        return { success: false, error: error.message || "Failed to restore task" };
     }
 }
 
