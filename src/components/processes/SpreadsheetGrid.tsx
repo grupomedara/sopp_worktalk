@@ -281,6 +281,11 @@ export function SpreadsheetGrid({ list, currentUserId }: SpreadsheetGridProps) {
     const router = useRouter();
     const [isPending, startTransition] = useTransition();
     const [activeView, setActiveView] = useState<"spreadsheet" | "kanban" | "gantt">("spreadsheet");
+    const [localTasks, setLocalTasks] = useState<any[]>(list.tasks || []);
+
+    useEffect(() => {
+        setLocalTasks(list.tasks || []);
+    }, [list.tasks]);
 
     const isOwner = list.space?.userId === currentUserId;
     const spaceShares = list.space?.shares || [];
@@ -434,7 +439,7 @@ export function SpreadsheetGrid({ list, currentUserId }: SpreadsheetGridProps) {
     ];
 
     const getGroupTasks = (statusId: string) => {
-        let tasks = list.tasks.filter((t: any) => t.status === statusId && !t.deletedAt);
+        let tasks = localTasks.filter((t: any) => t.status === statusId && !t.deletedAt);
 
         if (sortConfig) {
             tasks.sort((a: any, b: any) => {
@@ -485,21 +490,64 @@ export function SpreadsheetGrid({ list, currentUserId }: SpreadsheetGridProps) {
         const title = quickTitleByStatus[statusId];
         if (!title || !title.trim()) return;
 
+        setQuickTitleByStatus(prev => ({ ...prev, [statusId]: "" }));
+
+        const tempId = "temp-" + Date.now();
+        const tempTask: any = {
+            id: tempId,
+            title: title,
+            status: statusId,
+            priority: "NORMAL",
+            date: null,
+            startedAt: statusId === "IN_PROGRESS" || statusId === "COMPLETED" ? new Date() : null,
+            completedAt: statusId === "COMPLETED" ? new Date() : null,
+            deletedAt: null,
+            customFieldValues: {},
+            comments: [],
+            responsible: null
+        };
+        setLocalTasks(prev => [...prev, tempTask]);
+
         const res = await createListTask(list.id, title, "NORMAL", {});
-        if (res.success) {
-            // If the status we created is not pending, immediately update its status!
-            if (statusId !== "PENDING" && res.data) {
-                await updateListTask(res.data.id, { status: statusId as any });
+        if (res.success && res.data) {
+            let finalTask = res.data;
+            if (statusId !== "PENDING") {
+                const updateRes = await updateListTask(res.data.id, { status: statusId as any });
+                if (updateRes.success && updateRes.data) {
+                    finalTask = updateRes.data;
+                }
             }
-            setQuickTitleByStatus(prev => ({ ...prev, [statusId]: "" }));
+            setLocalTasks(prev => prev.map(t => t.id === tempId ? finalTask : t));
             startTransition(() => router.refresh());
         } else {
             toast.error(res.error || "Erro ao criar");
+            setLocalTasks(list.tasks || []);
         }
     };
 
     // Handler to update standard fields inline
     const handleUpdateTaskField = async (taskId: string, field: string, value: any) => {
+        // Optimistic update
+        setLocalTasks(prev => prev.map(t => {
+            if (t.id === taskId) {
+                const updated = { ...t, [field]: value };
+                if (field === "status") {
+                    if (value === "IN_PROGRESS") {
+                        if (t.status === "PENDING") updated.startedAt = new Date();
+                        updated.completedAt = null;
+                    } else if (value === "COMPLETED") {
+                        if (!t.startedAt) updated.startedAt = new Date();
+                        updated.completedAt = new Date();
+                    } else if (value === "PENDING") {
+                        updated.startedAt = null;
+                        updated.completedAt = null;
+                    }
+                }
+                return updated;
+            }
+            return t;
+        }));
+
         const updateData: any = {};
         updateData[field] = value;
         const res = await updateListTask(taskId, updateData);
@@ -507,6 +555,7 @@ export function SpreadsheetGrid({ list, currentUserId }: SpreadsheetGridProps) {
             startTransition(() => router.refresh());
         } else {
             toast.error(res.error || "Erro ao salvar");
+            setLocalTasks(list.tasks || []);
         }
     };
 
@@ -515,16 +564,32 @@ export function SpreadsheetGrid({ list, currentUserId }: SpreadsheetGridProps) {
         const currentValues = (task.customFieldValues as Record<string, any>) || {};
         const updatedValues = { ...currentValues, [fieldId]: value };
         
+        // Optimistic update
+        setLocalTasks(prev => prev.map(t => t.id === taskId ? { ...t, customFieldValues: updatedValues } : t));
+
         const res = await updateListTask(taskId, { customFieldValues: updatedValues });
         if (res.success) {
             startTransition(() => router.refresh());
         } else {
             toast.error(res.error || "Erro ao salvar");
+            setLocalTasks(list.tasks || []);
         }
     };
 
     // Handler to delete a task row
     const handleDeleteRow = async (taskId: string) => {
+        const taskObj = localTasks.find(t => t.id === taskId);
+        const isPermanent = !!taskObj?.deletedAt;
+
+        // Optimistic update
+        setLocalTasks(prev => {
+            if (isPermanent) {
+                return prev.filter(t => t.id !== taskId);
+            } else {
+                return prev.map(t => t.id === taskId ? { ...t, deletedAt: new Date() } : t);
+            }
+        });
+
         const res = await deleteListTask(taskId);
         if (res.success) {
             if (res.permanent) {
@@ -535,23 +600,44 @@ export function SpreadsheetGrid({ list, currentUserId }: SpreadsheetGridProps) {
             startTransition(() => router.refresh());
         } else {
             toast.error(res.error || "Erro ao excluir");
+            setLocalTasks(list.tasks || []);
         }
     };
 
     // Handler to restore a task
     const handleRestoreTask = async (taskId: string, targetStatus: "PENDING" | "IN_PROGRESS" | "COMPLETED") => {
+        // Optimistic update
+        setLocalTasks(prev => prev.map(t => {
+            if (t.id === taskId) {
+                const updated = { ...t, deletedAt: null, status: targetStatus };
+                if (targetStatus === "IN_PROGRESS") {
+                    updated.startedAt = new Date();
+                    updated.completedAt = null;
+                } else if (targetStatus === "COMPLETED") {
+                    if (!t.startedAt) updated.startedAt = new Date();
+                    updated.completedAt = new Date();
+                } else if (targetStatus === "PENDING") {
+                    updated.startedAt = null;
+                    updated.completedAt = null;
+                }
+                return updated;
+            }
+            return t;
+        }));
+
         const res = await restoreListTask(taskId, targetStatus);
         if (res.success) {
             toast.success("Tarefa restaurada com sucesso!");
             startTransition(() => router.refresh());
         } else {
             toast.error(res.error || "Erro ao restaurar");
+            setLocalTasks(list.tasks || []);
         }
     };
 
     // Get only soft-deleted tasks sorted by deletedAt desc
     const getDeletedTasks = () => {
-        let tasks = list.tasks.filter((t: any) => !!t.deletedAt);
+        let tasks = localTasks.filter((t: any) => !!t.deletedAt);
         tasks.sort((a: any, b: any) => {
             const aTime = a.deletedAt ? new Date(a.deletedAt).getTime() : 0;
             const bTime = b.deletedAt ? new Date(b.deletedAt).getTime() : 0;
@@ -709,7 +795,7 @@ export function SpreadsheetGrid({ list, currentUserId }: SpreadsheetGridProps) {
         let maxDate = new Date(today);
         maxDate.setDate(maxDate.getDate() + 11); // 11 days after today
 
-        const tasks = list.tasks || [];
+        const tasks = localTasks.filter((t: any) => !t.deletedAt) || [];
         tasks.forEach((t: any) => {
             if (t.createdAt) {
                 const cDate = new Date(t.createdAt);
@@ -745,7 +831,7 @@ export function SpreadsheetGrid({ list, currentUserId }: SpreadsheetGridProps) {
     };
 
     const renderKanbanView = () => {
-        const tasks = list.tasks || [];
+        const tasks = localTasks.filter((t: any) => !t.deletedAt) || [];
         if (tasks.length === 0) {
             return (
                 <div className="border border-dashed border-zinc-800 rounded-xl p-12 text-center bg-zinc-950/20">
@@ -767,12 +853,16 @@ export function SpreadsheetGrid({ list, currentUserId }: SpreadsheetGridProps) {
 
             const task = tasks.find((t: any) => t.id === taskId);
             if (task && task.status !== targetStatus) {
+                // Optimistic local update
+                setLocalTasks(prev => prev.map(t => t.id === taskId ? { ...t, status: targetStatus } : t));
+
                 const res = await updateListTask(taskId, { status: targetStatus as any });
                 if (res.success) {
                     toast.success("Status atualizado!");
                     startTransition(() => router.refresh());
                 } else {
                     toast.error(res.error || "Erro ao atualizar status");
+                    setLocalTasks(list.tasks || []);
                 }
             }
         };
@@ -876,7 +966,7 @@ export function SpreadsheetGrid({ list, currentUserId }: SpreadsheetGridProps) {
     };
 
     const renderGanttView = () => {
-        const tasks = list.tasks || [];
+        const tasks = localTasks.filter((t: any) => !t.deletedAt) || [];
         if (tasks.length === 0) {
             return (
                 <div className="border border-dashed border-zinc-800 rounded-xl p-12 text-center bg-zinc-950/20">
@@ -2086,7 +2176,7 @@ export function SpreadsheetGrid({ list, currentUserId }: SpreadsheetGridProps) {
 
             {/* Delete Task Confirmation */}
             {isConfirmDeleteOpen && (() => {
-                const taskToDeleteObj = list.tasks.find((t: any) => t.id === taskToDelete);
+                const taskToDeleteObj = localTasks.find((t: any) => t.id === taskToDelete);
                 const isSoftDeleted = !!taskToDeleteObj?.deletedAt;
                 return (
                     <ConfirmModal
